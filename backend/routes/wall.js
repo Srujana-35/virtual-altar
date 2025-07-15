@@ -54,37 +54,30 @@ const upload = multer({
   }
 });
 
-// Save Wall (create or update latest for user)
+// Save Wall (create new wall for user)
 router.post('/save', verifyToken, async (req, res) => {
   try {
-    const { wallData } = req.body;
+    const { wallData, wallName } = req.body;
     const userId = req.user.userId;
 
     if (!wallData) {
       return res.status(400).json({ error: 'Wall data is required' });
     }
 
-    // Check if a wall exists for this user
-    const [existingWalls] = await db.execute(
-      'SELECT * FROM walls WHERE user_id = ?',
-      [userId]
-    );
+    // Use a default name if wallName is null/undefined/empty
+    const nameToSave = wallName || 'Untitled Wall';
 
-    if (existingWalls.length > 0) {
-      // Update the latest wall for this user
-      await db.execute(
-        'UPDATE walls SET wall_data = ?, updated_at = NOW() WHERE user_id = ?',
-        [JSON.stringify(wallData), userId]
-      );
-      res.json({ message: 'Wall updated successfully' });
-    } else {
-      // Create new wall
-      await db.execute(
-        'INSERT INTO walls (user_id, wall_data) VALUES (?, ?)',
-        [userId, JSON.stringify(wallData)]
-      );
-      res.json({ message: 'Wall saved successfully' });
-    }
+    // Always create a new wall entry
+    const [result] = await db.execute(
+      'INSERT INTO walls (user_id, name, wall_data) VALUES (?, ?, ?)',
+      [userId, nameToSave, JSON.stringify(wallData)]
+    );
+    
+    res.json({ 
+      message: 'Wall saved successfully',
+      wallId: result.insertId,
+      name: nameToSave
+    });
   } catch (error) {
     console.error('Save wall error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -96,7 +89,7 @@ router.get('/list', verifyToken, async (req, res) => {
   try {
     const userId = req.user.userId;
     const [walls] = await db.execute(
-      'SELECT id, created_at, updated_at FROM walls WHERE user_id = ? ORDER BY updated_at DESC',
+      'SELECT id, name, created_at, updated_at FROM walls WHERE user_id = ? ORDER BY updated_at DESC',
       [userId]
     );
     res.json({ walls });
@@ -125,6 +118,7 @@ router.get('/load/:wallId', verifyToken, async (req, res) => {
     res.json({
       wall: {
         id: wall.id,
+        name: wall.name,
         wallData: JSON.parse(wall.wall_data),
         createdAt: wall.created_at,
         updatedAt: wall.updated_at

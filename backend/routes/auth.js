@@ -126,26 +126,7 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-// Remove the /profile endpoint and related code
-// Get User Profile
-// router.get('/profile', verifyToken, async (req, res) => {
-//   try {
-//     const userId = req.user.userId;
-//     const [users] = await db.execute('SELECT id, email, created_at FROM users WHERE id = ?', [userId]);
-//     if (users.length === 0) {
-//       return res.status(404).json({ error: 'User not found' });
-//     }
-//     const user = users[0];
-//     res.json({
-//       id: user.id,
-//       email: user.email,
-//       createdAt: user.created_at
-//     });
-//   } catch (error) {
-//     console.error('Profile error:', error);
-//     res.status(500).json({ error: 'Internal server error' });
-//   }
-// });
+
 
 // Test route
 router.get('/test', (req, res) => {
