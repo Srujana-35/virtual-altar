@@ -1,0 +1,87 @@
+.App {
+  text-align: center;
+  padding: 20px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.wall {
+  margin: auto;
+  width: 1200px;
+  height: 800px;
+  border: 3px solid #555;
+  position: relative;
+  overflow: auto;
+}
+
+.wall-image {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  position: absolute;
+  cursor: move;
+  border-radius: 10px;
+}
+
+.buttons-on-context {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 5px;
+  background-color: white;
+  padding: 5px;
+  border: 1px solid #999;
+  border-radius: 4px;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  z-index: 10;
+}
+
+.buttons-on-context button {
+  padding: 2px 6px;
+  font-size: 12px;
+  background-color: #eee;
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.buttons-on-context button:hover {
+  background-color: #ddd;
+}
+.controls-submit {
+  padding: 5px 10px;
+  font-size: 14px;
+  background-color: #16a4ec;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.back-button{
+  margin-left: 10px;
+  font-size: 14px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.download-button {
+  padding: 5px 10px;
+  margin-left:10px;
+  font-size: 14px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
