@@ -1,15 +1,23 @@
-import React,{useState} from 'react';
+import React, { useState } from 'react';
 import './pages.css';
 import { Link ,useNavigate} from "react-router-dom";
-function Signup(){
-    const navigate=useNavigate();
-    const[username,setusername]=useState("");
-    const[mail,setmail]=useState("");
-    const[password,setpassword]=useState("");
-    const[repassword,setrepassword]=useState("");
+function Signup() {
+    const navigate = useNavigate();
+    const [username, setusername] = useState("");
+    const [mail, setmail] = useState("");
+    const [password, setpassword] = useState("");
+    const [repassword, setrepassword] = useState("");
     const [passwordStrength, setPasswordStrength] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showRePassword, setShowRePassword] = useState(false);
+    // OTP-related state
+    const [otpStep, setOtpStep] = useState(false);
+    const [otp, setOtp] = useState("");
+    const [otpError, setOtpError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [infoMsg, setInfoMsg] = useState("");
+    const [otpTimer, setOtpTimer] = useState(300); // 5 minutes in seconds
+    const [otpExpired, setOtpExpired] = useState(false);
 
     // Password strength checker function
     function checkPasswordStrength(pw) {
@@ -27,17 +35,49 @@ function Signup(){
     }
     const handlesubmit = async (e) => {
         e.preventDefault();
-        if(password!==repassword){
+        if (password !== repassword) {
             alert("passwords do not match");
             return;
         }
+        setLoading(true);
+        setOtpError("");
+        setInfoMsg("");
         try {
-            const response = await fetch('http://localhost:5000/api/auth/signup', {
+            // Step 1: Request OTP
+            const response = await fetch('http://localhost:5000/api/auth/request-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    username: username,
+                    email: mail
+                })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                setOtpStep(true);
+                setInfoMsg("An OTP has been sent to your email. Please enter it below to verify.");
+            } else {
+                setOtpError(data.error || "Failed to send OTP");
+            }
+        } catch (err) {
+            setOtpError("Error connecting to server");
+        }
+        setLoading(false);
+    };
+
+    // Step 2: Handle OTP verification and signup
+    const handleOtpSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setOtpError("");
+        setInfoMsg("");
+        try {
+            const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
                     email: mail,
+                    otp: otp,
+                    username: username,
                     password: password
                 })
             });
@@ -49,39 +89,83 @@ function Signup(){
                     email: mail
                 };
                 localStorage.setItem('userInfo', JSON.stringify(userInfo));
-                
                 alert("Signup successful!");
                 navigate("/login");
             } else {
-                alert(data.error || "Signup failed");
+                setOtpError(data.error || "OTP verification failed");
             }
         } catch (err) {
-            alert("Error connecting to server");
+            setOtpError("Error connecting to server");
         }
+        setLoading(false);
     };
 
-    return(
-      
+    // Resend OTP handler
+    const handleResendOtp = async () => {
+      setLoading(true);
+      setOtpError("");
+      setInfoMsg("");
+      try {
+        const response = await fetch('http://localhost:5000/api/auth/request-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: mail })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setOtpTimer(300);
+          setOtpExpired(false);
+          setInfoMsg('OTP resent to your email.');
+        } else {
+          setOtpError(data.error || 'Failed to resend OTP');
+        }
+      } catch (err) {
+        setOtpError('Error connecting to server');
+        }
+      setLoading(false);
+    };
+
+    // Start OTP timer when otpStep becomes true
+    React.useEffect(() => {
+      let interval;
+      if (otpStep) {
+        setOtpTimer(300);
+        setOtpExpired(false);
+        interval = setInterval(() => {
+          setOtpTimer((prev) => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              setOtpExpired(true);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
+      return () => clearInterval(interval);
+    }, [otpStep]);
+
+    return (
         <div className="signup-container">
             <header className="header combined-header">
-              <span className="site-title">Virtual Wall Decorator</span>
+              <span className="site-title">MiAltar</span>
               <nav className="header-nav">
                 <Link to="/">Home</Link>
                 <Link to="/login">Login</Link>
                 <Link to="/signup" className="active">Sign Up</Link>
-                <Link to="/profile">Profile</Link>
               </nav>
             </header>
         <div className="signup-content">
             <h2>Sign Up</h2>
             <p>Create your account</p>
+                {!otpStep ? (
             <form onSubmit={handlesubmit}>
               <div className="form-group">
                 <label>Username:</label>
                 <input 
                     type="text"
                     value={username}
-                    onChange={(e)=>setusername(e.target.value)}
+                                onChange={(e) => setusername(e.target.value)}
                     placeholder="Username"
                     required
                 />
@@ -91,7 +175,7 @@ function Signup(){
                 <input 
                     type="email"
                     value={mail}
-                    onChange={(e)=>setmail(e.target.value)}
+                                onChange={(e) => setmail(e.target.value)}
                     placeholder="Email"
                     required
                 />
@@ -101,7 +185,7 @@ function Signup(){
                 <input 
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e)=> {
+                                onChange={(e) => {
                       setpassword(e.target.value);
                       setPasswordStrength(checkPasswordStrength(e.target.value));
                     }}
@@ -130,7 +214,7 @@ function Signup(){
                 <input 
                     type={showRePassword ? "text" : "password"}
                     value={repassword}
-                    onChange={(e)=>setrepassword(e.target.value)}
+                                onChange={(e) => setrepassword(e.target.value)}
                     placeholder="Confirm Password"
                     required
                 />
@@ -142,11 +226,42 @@ function Signup(){
                   {showRePassword ? "Hide" : "Show"}
                 </button>
               </div>
-              <button type="submit">Sign Up</button>
+                        <button type="submit" disabled={loading}>{loading ? "Sending OTP..." : "Sign Up"}</button>
+                        {otpError && <div style={{ color: 'red', marginTop: '8px' }}>{otpError}</div>}
+                        {infoMsg && <div style={{ color: 'green', marginTop: '8px' }}>{infoMsg}</div>}
+                    </form>
+                ) : (
+                    <form onSubmit={handleOtpSubmit}>
+                        <div className="form-group">
+                            <label>Enter OTP sent to your email:</label>
+                            <input
+                                type="text"
+                                value={otp}
+                                onChange={(e) => setOtp(e.target.value)}
+                                placeholder="Enter OTP"
+                                required
+                                maxLength={6}
+                                disabled={otpExpired}
+                            />
+                        </div>
+                        <div style={{ marginBottom: '10px', color: otpExpired ? 'red' : '#1976d2', fontWeight: 500 }}>
+                          {otpExpired
+                            ? 'OTP expired. Please request a new one.'
+                            : `Expires in: ${String(Math.floor(otpTimer / 60)).padStart(2, '0')}:${String(otpTimer % 60).padStart(2, '0')}`}
+                        </div>
+                        <button type="submit" disabled={loading || otpExpired}>{loading ? "Verifying..." : "Verify OTP & Complete Signup"}</button>
+                        {otpExpired && (
+                          <button type="button" onClick={handleResendOtp} disabled={loading} style={{ marginTop: 8, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 18px', fontWeight: 600, cursor: 'pointer' }}>
+                            {loading ? 'Resending...' : 'Resend OTP'}
+                          </button>
+                        )}
+                        {otpError && <div style={{ color: 'red', marginTop: '8px' }}>{otpError}</div>}
+                        {infoMsg && <div style={{ color: 'green', marginTop: '8px' }}>{infoMsg}</div>}
             </form>
+                )}
             <p>Already have an account? <Link to="/login">Login</Link></p>
         </div>
         </div>
-    )
+    );
 }
 export default Signup;

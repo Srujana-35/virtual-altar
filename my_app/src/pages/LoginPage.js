@@ -20,16 +20,19 @@ function Login()
             if (response.ok) {
                 // Save the token to localStorage
                 localStorage.setItem('token', data.token);
-                
-                // Save user information to localStorage
-                const userInfo = {
-                    username: data.username || mail.split('@')[0], // Use email prefix if username not provided
-                    email: mail
-                };
-                localStorage.setItem('userInfo', JSON.stringify(userInfo));
-                
+                // Save user information (with role) to localStorage
+                localStorage.setItem('userInfo', JSON.stringify(data.user));
                 alert("Login successful");
-                navigate("/wall");
+                // Redirect to intended page if present
+                const redirectPath = localStorage.getItem('redirectAfterLogin');
+                if (redirectPath) {
+                    localStorage.removeItem('redirectAfterLogin');
+                    navigate(redirectPath);
+                } else if (data.user && data.user.role === 'admin') {
+                    navigate('/admin');
+                } else {
+                    navigate('/wall');
+                }
             } else {
                 alert(data.error || "Login failed");
             }
@@ -41,17 +44,17 @@ function Login()
      return(
        <div className="login-container">
              <header className="header combined-header">
-               <span className="site-title">Virtual Wall Decorator</span>
+               <span className="site-title">MiAltar</span>
                <nav className="header-nav">
                  <Link to="/">Home</Link>
                  <Link to="/login" className="active">Login</Link>
                  <Link to="/signup">Sign Up</Link>
-                 <Link to="/profile">Profile</Link>
+                
                </nav>
              </header>
             <div className="login-content">
               <h2>Login</h2>
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} className="login-form">
                 <div className="form-group">
                   <label>Email:</label>
                   <input 
@@ -74,6 +77,9 @@ function Login()
                 </div>
                 <button type="submit">Login</button>
               </form>
+              <div className="forgot-password-link-container">
+                <Link to="/forgot-password" className="forgot-password-link">Forgot password?</Link>
+              </div>
               <p>Don't have an account? <Link to="/signup">Signup</Link></p>
             </div>
           

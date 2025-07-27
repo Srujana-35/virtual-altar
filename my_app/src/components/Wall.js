@@ -4,6 +4,8 @@ import { Link } from "react-router-dom";
 import html2canvas from "html2canvas";
 import { Rnd } from "react-rnd";
 import "./Wall.css";
+import ReactDOM from "react-dom";
+import { useFeatures } from "../hooks/useFeatures";
 
 
 function Wall() {
@@ -15,46 +17,106 @@ function Wall() {
   const [contextMenu, setContextMenu] = useState(null); // Context menu state
   const [wallHeight, setWallHeight] = useState(600); // default height in px
   const [wallWidth, setWallWidth] = useState(900); // default width in px
-  
+  const [uploading, setUploading] = useState(false); // New: uploading state
+  const [decorationPalette, setDecorationPalette] = useState([
+    { id: 'garland1', src: '/decorations/garland1.png' },
+    { id: 'garland2', src: '/decorations/garland2.png' },
+    { id: 'bouquet', src: '/decorations/bouquet.png' },
+    { id: 'candles', src: '/decorations/candles.png' },
+    { id: 'fruits', src: '/decorations/fruits.png' },
+    { id: 'table', src: '/decorations/table.png' },
+    {id:'garland3', src:'/decorations/garland3.png'},
+  ]);
+  const [currentWallId, setCurrentWallId] = useState(null);
+  const { canUseFeature, isPremium, features } = useFeatures();
 
-  const handleUpload = (e) => {
+  // Debug logging
+  useEffect(() => {
+    console.log('Wall.js - Features loaded:', features);
+    console.log('Wall.js - Can use premium backgrounds:', canUseFeature('premium_backgrounds'));
+    console.log('Wall.js - Is premium:', isPremium);
+  }, [features, canUseFeature, isPremium]);
+
+  // Helper to upload a file to the backend and get the filename
+  const uploadImageToServer = async (file) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('image', file);
+    const res = await fetch('http://localhost:5000/api/wall/upload-image', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData
+    });
+    if (!res.ok) throw new Error('Image upload failed');
+    const data = await res.json();
+    console.log('Upload response:', data); // Debug
+    return data.filename;
+  };
+
+  // Upload images to backend and add to wall
+  const handleUpload = async (e) => {
     const files = Array.from(e.target.files);
     const baseOffset = 30; // pixels to offset each image
-    const newImages = files.map((file, idx) => {
-      const imageURL = URL.createObjectURL(file);
+    setUploading(true);
+    try {
+      const uploadedImages = await Promise.all(files.map(async (file, idx) => {
+        const filename = await uploadImageToServer(file);
+        console.log('Uploaded filename:', filename); // Debug
       const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       // Offset each image by its index and the current number of images
       const offset = (images.length + idx) * baseOffset;
       return {
         id: uniqueId,
-        src: imageURL,
+          src: filename,
         shape: "square",
         width: 120,
         height: 120,
         x: 50 + offset,
         y: 50 + offset
       };
-    });
-    setImages([...images, ...newImages]);
-  };
-
-  const handleWallpaperUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageURL = URL.createObjectURL(file);
-      setWallpaper(imageURL);
+      }));
+      console.log('Final uploaded images:', uploadedImages); // Debug
+      setImages([...images, ...uploadedImages]);
+    } catch (err) {
+      alert('Failed to upload one or more images.');
+    } finally {
+      setUploading(false);
     }
   };
 
-  const decorationPalette = [
-    "/decorations/garland1.png",
-    "/decorations/garland2.png",
-    "/decorations/bouquet.png",
-    "/decorations/candles.png",
-    "/decorations/fruits.png",
-    "/decorations/table.png",
-    "/decorations/frames.png"
-  ];
+  // Upload wallpaper to backend and set as wallpaper
+  const handleWallpaperUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploading(true);
+      try {
+        const filename = await uploadImageToServer(file);
+        setWallpaper(filename);
+      } catch (err) {
+        alert('Failed to upload wallpaper.');
+      } finally {
+        setUploading(false);
+      }
+    }
+  };
+
+  // Upload user decoration and add to palette
+  const handleDecorationUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const filename = await uploadImageToServer(file);
+      setDecorationPalette(prev => [
+        ...prev,
+        { id: `user-${Date.now()}`, src: filename }
+      ]);
+    } catch (err) {
+      alert('Failed to upload decoration.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleDropOnWall = (src, e) => {
     const wall = document.getElementById("wall");
@@ -63,7 +125,7 @@ function Wall() {
     const y = e.clientY - wallRect.top;
     const newDecoration = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      src: src,
+      src: src, // Store only the filename or relative path
       width: 100,
       height: 100,
       x,
@@ -88,20 +150,35 @@ function Wall() {
     setContextMenu(null);
   };
 
+  // In handleToggleShape, always set width=height for circle
   const handleToggleShape = (img) => {
     const newShape = img.shape === "circle" ? "square" : "circle";
+    let newWidth = img.width;
+    let newHeight = img.height;
+    if (newShape === "circle") {
+      newWidth = newHeight = Math.max(img.width, img.height);
+    }
     updateImage(img.id, {
       shape: newShape,
-      ...(newShape === "circle"
-        ? { width: Math.min(img.width, img.height), height: Math.min(img.width, img.height) }
-        : {})
+      width: newWidth,
+      height: newHeight
     });
     setContextMenu(null);
   };
 
+  // Always use server URL for images/wallpaper
+  const makeImageUrl = (src) => {
+    console.log('makeImageUrl called with src:', src); // Debug
+    if (!src) return null;
+    if (src.startsWith('/') || src.startsWith('data:')) return src;
+    const fullUrl = `http://localhost:5000/uploads/${src}`;
+    console.log('Generated URL:', fullUrl); // Debug
+    return fullUrl;
+  };
+
   const wallStyle = {
     backgroundColor: wallColor,
-    backgroundImage: wallpaper ? `url(${wallpaper})` : "none",
+    backgroundImage: wallpaper ? `url(${makeImageUrl(wallpaper)})` : "none",
     backgroundSize: "cover",
     backgroundPosition: "center",
     height: wallHeight + "px",
@@ -151,29 +228,30 @@ function Wall() {
     // Show wall name in alert
     const wallName = wallData.wall.name || 'Untitled Wall';
     alert(`Loaded wall: ${wallName}`);
-      // Convert image srcs to valid URLs if needed
-      const makeImageUrl = (src) => {
-        if (!src) return src;
-        if (src.startsWith('blob:') || src.startsWith('/') || src.startsWith('data:')) return src;
-        // Assume it's a filename from backend uploads
-        return `http://localhost:5000/uploads/${src}`;
-      };
+    
+    console.log('Loading wall data:', wallData.wall.wallData); // Debug
+    
+    // Keep original src values, let makeImageUrl handle them during render
       const fixedImages = (images || []).map(img => ({
         ...img,
-        src: makeImageUrl(img.src)
+      src: img.src
       }));
       const fixedDecorations = (decorations || []).map(dec => ({
         ...dec,
-        src: makeImageUrl(dec.src)
+      src: dec.src
       }));
-      const fixedWallpaper = makeImageUrl(wallpaper);
+    
       setImages(fixedImages);
       setDecorations(fixedDecorations);
       setWallColor(wallColor);
       setBorderStyle(borderStyle);
-      setWallpaper(fixedWallpaper);
+    setWallpaper(wallpaper);
       setWallHeight(wallHeight);
       setWallWidth(wallWidth);
+      setCurrentWallId(latestWallId); // Set currentWallId on load
+    
+    console.log('Loaded images:', fixedImages); // Debug
+    console.log('Loaded decorations:', fixedDecorations); // Debug
     } catch (err) {
       alert('Error loading wall: ' + err.message);
     }
@@ -188,6 +266,56 @@ function Wall() {
     {src:"/backgrounds/homebg4.jpg", name:"Plain White"},
     
   ];
+
+  // Add after defaultBackgrounds
+  const premiumBackgrounds = [
+    { src: "/backgrounds/bricky.jpg", name: "Bricky" },
+    { src: "/backgrounds/classic.jpg", name: "Classic" },
+    {src:"/backgrounds/colorful.jpg", name:"Colorful"},
+    {src:"/backgrounds/flowers.jpg", name:"FLowers"},
+    {src:"/backgrounds/modernized.jpg", name:"Modernized"},
+    {src:"/backgrounds/official.jpg", name:"Official"},
+    // Add more as needed
+  ];
+
+  // Update premiumDecorations with category field
+  const premiumDecorations = [
+    { id: "table1", src: "/decorations/table1.png", category: "tables" },
+    { id: "table2", src: "/decorations/table2.png", category: "tables" },
+    { id: "table3", src: "/decorations/table3.png", category: "tables" },
+    { id: "candle2", src: "/decorations/candle2.png", category: "candles" },
+    { id: "candle3", src: "/decorations/candle3.png", category: "candles" },
+    { id: "candle4", src: "/decorations/candle4.png", category: "candles" },
+    { id: "candle5", src: "/decorations/candle5.png", category: "candles" },
+    { id: "bouquet1", src: "/decorations/bouquet1.png", category: "bouquets" },
+    { id: "bouquet2", src: "/decorations/bouquet2.png", category: "bouquets" },
+    { id: "bouquet3", src: "/decorations/bouquet3.png", category: "bouquets" },
+    { id: "fruits1", src: "/decorations/fruits1.png", category: "fruits" },
+    { id: "fruits2", src: "/decorations/fruits2.png", category: "fruits" },
+    { id: "garland3", src: "/decorations/garland3.png", category: "garlands" },
+    { id: "garland4", src: "/decorations/garland4.png", category: "garlands" },
+    { id: "garland5", src: "/decorations/garland5.png", category: "garlands" },
+    { id: "garland6", src: "/decorations/garland6.png", category: "garlands" },
+    { id: "wallgarland", src: "/decorations/wallgarland.png", category: "wallgarlands" },
+    { id: "wallgarland1", src: "/decorations/wallgarland1.png", category: "wallgarlands" },
+    { id: "wallgarland2", src: "/decorations/wallgarland2.png", category: "wallgarlands" },
+    { id: "frame1", src: "/decorations/frame1.png", category: "frames" },
+    { id: "frame2", src: "/decorations/frame2.png", category: "frames" },
+    { id: "frame3", src: "/decorations/frame3.png", category: "frames" },
+    // Add more as needed
+  ];
+
+  const premiumCategories = [
+    { key: "tables", label: "Tables" },
+    { key: "candles", label: "Candles" },
+    { key: "bouquets", label: "Bouquets" },
+    { key: "fruits", label: "Fruits" },
+    { key: "garlands", label: "Garlands" },
+    { key: "wallgarlands", label: "Wall Garlands" },
+    { key: "frames", label: "Frames" },
+  ];
+
+  const [selectedPremiumCategory, setSelectedPremiumCategory] = useState("tables");
 
   // Handler for submit button
   const handleSubmitWall = async () => {
@@ -207,22 +335,39 @@ function Wall() {
     try {
       const token = localStorage.getItem('token');
       
-      const requestBody = { wallData: wallState, wallName };
-      
-      const response = await fetch('http://localhost:5000/api/wall/save', {
+      let response, data;
+      if (currentWallId) {
+        // Update existing wall
+        response = await fetch(`http://localhost:5000/api/wall/update/${currentWallId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ wallData: wallState, wallName })
+        });
+        data = await response.json();
+        if (response.ok) {
+          alert(`Wall "${data.name}" updated successfully!`);
+        } else {
+          alert('Error updating wall: ' + (data.error || 'Unknown error'));
+        }
+      } else {
+        // Create new wall
+        response = await fetch('http://localhost:5000/api/wall/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(requestBody)
+          body: JSON.stringify({ wallData: wallState, wallName })
       });
-      const data = await response.json();
-      
+        data = await response.json();
       if (response.ok) {
         alert(`Wall "${data.name}" saved successfully!`);
       } else {
         alert('Error saving wall: ' + (data.error || 'Unknown error'));
+        }
       }
     } catch (err) {
       alert('Error saving wall: ' + err.message);
@@ -232,299 +377,458 @@ function Wall() {
   useEffect(() => {
     // Restore wall if restoreWallData is present
     const restoreData = localStorage.getItem('restoreWallData');
+    const restoreId = localStorage.getItem('restoreWallId');
     if (restoreData) {
       try {
         const wallData = JSON.parse(restoreData);
-        const makeImageUrl = (src) => {
-          if (!src) return src;
-          if (src.startsWith('blob:') || src.startsWith('/') || src.startsWith('data:')) return src;
-          return `http://localhost:5000/uploads/${src}`;
-        };
+        console.log('Restoring wall data:', wallData); // Debug
+        
+        // Use the same makeImageUrl function as the rest of the component
         const fixedImages = (wallData.images || []).map(img => ({
           ...img,
-          src: makeImageUrl(img.src)
+          src: img.src // Keep the original src, let makeImageUrl handle it during render
         }));
         const fixedDecorations = (wallData.decorations || []).map(dec => ({
           ...dec,
-          src: makeImageUrl(dec.src)
+          src: dec.src // Keep the original src, let makeImageUrl handle it during render
         }));
-        const fixedWallpaper = makeImageUrl(wallData.wallpaper);
+        
         setImages(fixedImages);
         setDecorations(fixedDecorations);
         setWallColor(wallData.wallColor || '#f4f4f4');
         setBorderStyle(wallData.borderStyle || 'solid');
-        setWallpaper(fixedWallpaper);
+        setWallpaper(wallData.wallpaper); // Keep original, let makeImageUrl handle it
         setWallHeight(wallData.wallHeight || 600);
         setWallWidth(wallData.wallWidth || 900);
+        if (restoreId) setCurrentWallId(restoreId);
+        
+        console.log('Restored images:', fixedImages); // Debug
+        console.log('Restored decorations:', fixedDecorations); // Debug
       } catch (err) {
-        // ignore
+        console.error('Error restoring wall:', err);
       }
       localStorage.removeItem('restoreWallData');
+      localStorage.removeItem('restoreWallId');
     }
   }, []);
 
+  // Features are now managed by the useFeatures hook
+  // No need for separate premium status fetch
+
+  // At the top of the Wall function, get the user's profile photo from localStorage (if available)
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const profilePhoto = userInfo.profile_photo ? `http://localhost:5000/uploads/${userInfo.profile_photo}` : null;
+
   return (
-    <div className="wall-page-container">
-      {/* Profile Button in top right */}
-      <Link
-        to="/profile"
-        className="profile-button"
-        style={{
-          position: "absolute",
-          top: 20,
-          right: 30,
-          zIndex: 10000,
-          background: "#1976d2",
-          color: "#fff",
-          padding: "8px 16px",
-          borderRadius: "6px",
-          textDecoration: "none",
-          fontSize: "0.9rem",
-          fontWeight: "600",
-          transition: "background 0.2s"
-        }}
-        onMouseEnter={(e) => e.target.style.background = "#125ea2"}
-        onMouseLeave={(e) => e.target.style.background = "#1976d2"}
-      >
-        👤 Profile
-      </Link>
-     
-      <div className="sidebar">
-        {/* Default Backgrounds Section */}
-        <div className="default-backgrounds-section">
-          <h4 className="default-bg-title"> Background Layouts</h4>
-          <div className="default-bg-grid">
+    <>
+      <div className="wall-header">
+        <div className="wall-header-logo">MIALTAR</div>
+        <Link
+          to="/profile"
+          className="wall-profile-avatar-link"
+          title="Go to Profile"
+        >
+          {profilePhoto ? (
+            <img
+              src={profilePhoto}
+              alt="Profile"
+              className="wall-profile-avatar"
+            />
+          ) : (
+            <div className="wall-profile-avatar wall-profile-avatar-placeholder">👤</div>
+          )}
+        </Link>
+      </div>
+      {/* Decoration Palette full width below header */}
+      <div className="horizontal-palette-section horizontal-palette-fullwidth">
+        <h4 className="section-title">Decoration Palette</h4>
+        <div className="horizontal-palette-scroll">
+          {decorationPalette.map(dec => (
+            <img
+              key={dec.id}
+              src={makeImageUrl(dec.src)}
+              alt=""
+              className="horizontal-palette-thumb"
+              draggable={canUseFeature('drag_drop')}
+              onDragStart={canUseFeature('drag_drop') ? (e) => {
+                e.dataTransfer.setData("text/plain", dec.src);
+              } : undefined}
+            />
+          ))}
+          {/* Choose your own decoration - dynamic feature check */}
+          {canUseFeature('custom_decoration_upload') ? (
+            <div className="horizontal-palette-upload">
+              <label htmlFor="decoration-upload" className="decoration-upload-label">
+                Add your own decoration:
+              </label>
+              <input
+                id="decoration-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleDecorationUpload}
+                disabled={uploading}
+                className="decoration-upload-input"
+              />
+            </div>
+          ) : (
+            <div className="horizontal-palette-upload" style={{ color: "#888", fontStyle: "italic" }}>
+              Add your own decoration: <span style={{ color: "#bfa700" }}>Premium only</span>
+            </div>
+          )}
+        </div>
+      </div>
+      {/* Premium Decorations Section */}
+      {canUseFeature('premium_decorations') && (
+        <div className="horizontal-palette-section horizontal-palette-fullwidth">
+          <h4 className="section-title">Premium Decorations</h4>
+          <div className="premium-category-buttons" style={{ marginBottom: '8px' }}>
+            {premiumCategories.map(cat => (
+              <button
+                key={cat.key}
+                className={selectedPremiumCategory === cat.key ? "active" : ""}
+                style={{ marginRight: '6px', padding: '4px 10px', borderRadius: '6px', border: selectedPremiumCategory === cat.key ? '2px solid #bfa700' : '1px solid #ccc', background: selectedPremiumCategory === cat.key ? '#fffbe6' : '#fff', cursor: 'pointer', fontWeight: selectedPremiumCategory === cat.key ? 'bold' : 'normal' }}
+                onClick={() => setSelectedPremiumCategory(cat.key)}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+          <div className="horizontal-palette-scroll">
+            {premiumDecorations
+              .filter(dec => dec.category === selectedPremiumCategory)
+              .map(dec => (
+                <img
+                  key={dec.id}
+                  src={dec.src}
+                  alt=""
+                  className="horizontal-palette-thumb"
+                  draggable={canUseFeature('drag_drop')}
+                  onDragStart={canUseFeature('drag_drop') ? e => {
+                    e.dataTransfer.setData("text/plain", dec.src);
+                  } : undefined}
+                />
+              ))}
+          </div>
+        </div>
+      )}
+      <div className="wall-main-layout">
+        <div className="wall-sidebar-vertical">
+          <h4 className="section-title">Background Layouts</h4>
+          <div className="vertical-bg-list">
             {defaultBackgrounds.map((bg, idx) => (
-              <div key={bg.src} className="default-bg-item">
+              <div key={bg.src} className="vertical-bg-item">
                 <img
                   src={bg.src}
                   alt={bg.name}
-                  className="default-bg-thumb"
+                  className="vertical-bg-thumb"
                   onClick={() => setWallpaper(bg.src)}
                   style={{ cursor: "pointer" }}
                 />
-                <span className="default-bg-label">{bg.name}</span>
-                
+                <span className="vertical-bg-label">{bg.name}</span>
               </div>
-              
             ))}
-            <label>choose your own Wallpaper:
-              <input type="file" accept="image/*" onChange={handleWallpaperUpload} />
-            </label>
-          </div>
-        </div>
-        {/* Wall Settings Section */}
-        <div className="controls wide-controls" id="controls">
-          <form onSubmit={e => e.preventDefault()} className="controls-form">
-            <label className="inline-label">Image Upload:
-              <input type="file" multiple onChange={handleUpload} />
-            </label>
-            <label>Wall Color:
-              <input type="color" value={wallColor} onChange={e => setWallColor(e.target.value)} />
-            </label>
-            <label>Border Style:
-              <select value={borderStyle} onChange={e => setBorderStyle(e.target.value)}>
-                <option value="solid">Solid</option>
-                <option value="dashed">Dashed</option>
-                <option value="double">Double</option>
-                <option value="none">None</option>
-              </select>
-            </label>
-            
-            <label>Wall Height (px):
-              <input type="number" min="100" max="2000" value={wallHeight} onChange={e => setWallHeight(Number(e.target.value))} />
-            </label>
-            <label>Wall Width (px):
-              <input type="number" min="100" max="2000" value={wallWidth} onChange={e => setWallWidth(Number(e.target.value))} />
-            </label>
-            
-            {/* Button Grid - Two buttons per row */}
-            <div className="button-grid">
-              <button type="button" className="download-button" onClick={() => {
-                const wall = document.getElementById("wall");
-                if (!wall) return;
-                html2canvas(wall).then(canvas => {
-                  const dataURL = canvas.toDataURL("image/png");
-                  const link = document.createElement("a");
-                  link.href = dataURL;
-                  link.download = "my-virtual-wall.png";
-                  link.click();
-                  
-                  // Save downloaded image to localStorage for profile page
-                  const downloadedImage = {
-                    id: Date.now().toString(),
-                    src: dataURL,
-                    downloadDate: new Date().toISOString(),
-                    name: "my-virtual-wall.png"
-                  };
-                  
-                  const existingImages = JSON.parse(localStorage.getItem('downloadedImages') || '[]');
-                  existingImages.push(downloadedImage);
-                  localStorage.setItem('downloadedImages', JSON.stringify(existingImages));
-                });
-              }}>
-                ⬇ Download
-              </button>
-              <button type="button" className="clear-wall-button" onClick={() => { setImages([]); setDecorations([]); }}>
-                🗑 Clear
-              </button>
-              <button type="button" className="remove-wallpaper-button" onClick={() => setWallpaper(null)}>
-                🗑 Remove BG
-              </button>
-              <button type="button" className="submit-wall-button" onClick={handleSubmitWall}>
-                ✅ Save
-              </button>
-              <button type="button" className="load-wall-button" onClick={handleLoadWall}>
-                🔄 Load Wall
-              </button>
-            </div>
-          </form>
-        </div>
-        {/* Decoration Palette below wall settings */}
-        <div className="decoration-palette-below">
-          <h4>Decoration Palette</h4>
-          <div className="palette-grid">
-            {decorationPalette.map((src, index) => (
-              <img
-                key={index}
-                src={src}
-                alt="decoration"
-                className="palette-item"
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData("text/plain", src);
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Wall stays in the same position */}
-      <div
-        className="wall"
-        id="wall"
-        style={wallStyle}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          const src = e.dataTransfer.getData("text/plain");
-          if (src) handleDropOnWall(src, e);
-        }}
-      >
-        {images.map((img) => (
-          <Rnd
-            key={img.id}
-            size={{ width: img.width, height: img.height }}
-            position={{ x: img.x, y: img.y }}
-            bounds="#wall"
-            onDragStop={(e, d) => updateImage(img.id, { x: d.x, y: d.y })}
-            onResizeStop={(e, direction, ref, delta, position) => {
-              updateImage(img.id, {
-                width: parseInt(ref.style.width, 10),
-                height: parseInt(ref.style.height, 10),
-                ...position
-              });
-            }}
-            style={{
-              zIndex: 10,
-              border: `4px ${borderStyle} black`,
-              borderRadius: img.shape === "circle" ? "50%" : "10px",
-              overflow: img.shape === "circle" ? "hidden" : "visible"
-            }}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              setContextMenu({ x: e.clientX, y: e.clientY, image: img, type: "image" });
-            }}
-          >
-            <img
-              src={img.src}
-              alt="Uploaded"
-              style={{
-                width: "100%",
-                height: "100%",
-                borderRadius: img.shape === "circle" ? "50%" : "10px",
-                objectFit: "cover"
-              }}
-              draggable={false}
-            />
-          </Rnd>
-        ))}
-        {decorations.map((img) => (
-          <Rnd
-            key={img.id}
-            size={{ width: img.width, height: img.height }}
-            position={{ x: img.x, y: img.y }}
-            bounds="#wall"
-            onDragStop={(e, d) => updateDecoration(img.id, { x: d.x, y: d.y })}
-            onResizeStop={(e, direction, ref, delta, position) => {
-              updateDecoration(img.id, {
-                width: parseInt(ref.style.width, 10),
-                height: parseInt(ref.style.height, 10),
-                ...position
-              });
-            }}
-            style={{ zIndex: 20 }}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              setContextMenu({ x: e.clientX, y: e.clientY, decoration: img, type: "decoration" });
-            }}
-          >
-            <img
-              src={img.src}
-              alt="decoration"
-              style={{ width: "100%", height: "100%" }}
-              draggable={false}
-            />
-          </Rnd>
-        ))}
-
-        {/* Context Menu */}
-        {contextMenu && (
-          <div
-            style={{
-              position: "fixed",
-              top: contextMenu.y,
-              left: contextMenu.x,
-              background: "white",
-              border: "1px solid #ccc",
-              borderRadius: "6px",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-              zIndex: 9999,
-              padding: "6px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "4px"
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {contextMenu.type === "image" && (
+            {/* Premium Backgrounds */}
+            {canUseFeature('premium_backgrounds') && (
               <>
-                <button
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleToggleShape(contextMenu.image)}
-                >
-                  Toggle Shape ({contextMenu.image.shape === "circle" ? "Square" : "Circle"})
-                </button>
-                <button
-                  style={{ cursor: "pointer", color: "red" }}
-                  onClick={() => handleDeleteImage(contextMenu.image.id)}
-                >
-                  Delete Image 🗑
-                </button>
+                <div className="vertical-bg-premium-label">Premium Backgrounds</div>
+                {premiumBackgrounds.map((bg, idx) => (
+                  <div key={bg.src} className="vertical-bg-item premium-bg-item">
+                    <img
+                      src={bg.src}
+                      alt={bg.name}
+                      className="vertical-bg-thumb"
+                      onClick={() => setWallpaper(bg.src)}
+                      style={{ cursor: "pointer", border: "2px solid gold" }}
+                    />
+                    <span className="vertical-bg-label">{bg.name}</span>
+                  </div>
+                ))}
               </>
             )}
-            {contextMenu.type === "decoration" && (
-              <button
-                style={{ cursor: "pointer", color: "red" }}
-                onClick={() => handleDeleteDecoration(contextMenu.decoration.id)}
-              >
-                Delete Decoration 🗑
-              </button>
+            {/* Choose your own wallpaper - dynamic feature check */}
+            {canUseFeature('custom_background_upload') ? (
+              <label className="vertical-bg-upload">Choose your own Wallpaper:
+                <input type="file" accept="image/*" onChange={handleWallpaperUpload} disabled={uploading} />
+              </label>
+            ) : (
+              <div className="vertical-bg-upload vertical-bg-premium-label" style={{ color: "#888", fontStyle: "italic" }}>
+                Choose your own Wallpaper: <br />
+                <span style={{ color: "#bfa700" }}>Premium only</span>
+              </div>
             )}
           </div>
+        </div>
+        <div className="wall-center-content">
+          {/* Wall area */}
+          <div
+            className="wall"
+            id="wall"
+            style={wallStyle}
+            onDragOver={canUseFeature('drag_drop') ? (e) => e.preventDefault() : undefined}
+            onDrop={canUseFeature('drag_drop') ? (e) => {
+              const src = e.dataTransfer.getData("text/plain");
+              if (src) handleDropOnWall(src, e);
+            } : undefined}
+          >
+            {images.map((img) => (
+              <Rnd
+                key={img.id}
+                size={{ width: img.width, height: img.height }}
+                position={{ x: img.x, y: img.y }}
+                bounds="#wall"
+                onDragStop={(e, d) => updateImage(img.id, { x: d.x, y: d.y })}
+                onResizeStop={(e, direction, ref, delta, position) => {
+                  let newWidth = parseInt(ref.style.width, 10);
+                  let newHeight = parseInt(ref.style.height, 10);
+                  // If shape is circle, keep width and height equal
+                  if (img.shape === "circle") {
+                    newWidth = newHeight = Math.max(newWidth, newHeight);
+                  }
+                  updateImage(img.id, {
+                    width: newWidth,
+                    height: newHeight,
+                    ...position
+                  });
+                }}
+                style={{
+                  zIndex: 10,
+                  border: `4px ${borderStyle} black`,
+                  borderRadius: img.shape === "circle" ? "50%" : "10px",
+                  overflow: "visible"
+                }}
+                onContextMenu={canUseFeature('context_menu') ? (e) => {
+                  e.preventDefault();
+                  setContextMenu({ x: e.clientX, y: e.clientY, image: img, type: "image" });
+                } : undefined}
+              >
+                <img
+                  src={makeImageUrl(img.src)}
+                  alt="Uploaded"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: img.shape === "circle" ? "50%" : "10px",
+                    objectFit: "cover",
+                    background: "#fff",
+                    display: "block"
+                  }}
+                  crossOrigin="anonymous"
+                  draggable={false}
+                />
+              </Rnd>
+            ))}
+            {decorations.map((img) => (
+              <Rnd
+                key={img.id}
+                size={{ width: img.width, height: img.height }}
+                position={{ x: img.x, y: img.y }}
+                bounds="#wall"
+                onDragStop={(e, d) => updateDecoration(img.id, { x: d.x, y: d.y })}
+                onResizeStop={(e, direction, ref, delta, position) => {
+                  updateDecoration(img.id, {
+                    width: parseInt(ref.style.width, 10),
+                    height: parseInt(ref.style.height, 10),
+                    ...position
+                  });
+                }}
+                style={{ zIndex: 20 }}
+                onContextMenu={canUseFeature('context_menu') ? (e) => {
+                  e.preventDefault();
+                  setContextMenu({ x: e.clientX, y: e.clientY, decoration: img, type: "decoration" });
+                } : undefined}
+              >
+                <img
+                  src={makeImageUrl(img.src)} // Always use makeImageUrl here
+                  alt="decoration"
+                  style={{ width: "100%", height: "100%" }}
+                  draggable={false}
+                />
+              </Rnd>
+            ))}
+
+            {/* Context Menu */}
+            {contextMenu && canUseFeature('context_menu') && ReactDOM.createPortal(
+  <div
+    style={{
+      position: "fixed",
+      top: contextMenu.y,
+      left: contextMenu.x,
+      background: "white",
+      border: "1px solid #ccc",
+      borderRadius: "6px",
+      boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+      zIndex: 9999,
+      padding: "6px",
+      display: "flex",
+      flexDirection: "column",
+      gap: "4px"
+    }}
+    onClick={(e) => e.stopPropagation()}
+  >
+    {contextMenu.type === "image" && (
+      <>
+        {canUseFeature('image_shape_toggle') ? (
+          <button
+            style={{ cursor: "pointer" }}
+            onClick={() => handleToggleShape(contextMenu.image)}
+          >
+            Toggle Shape ({contextMenu.image.shape === "circle" ? "Square" : "Circle"})
+          </button>
+        ) : (
+          <button
+            style={{ cursor: "not-allowed", opacity: 0.5 }}
+            disabled
+            title="Shape toggle feature is not available"
+          >
+            🔒 Toggle Shape (Premium Only)
+          </button>
         )}
+        <button
+          style={{ cursor: "pointer", color: "red" }}
+          onClick={() => handleDeleteImage(contextMenu.image.id)}
+        >
+          Delete Image 🗑
+        </button>
+      </>
+    )}
+    {contextMenu.type === "decoration" && (
+      <button
+        style={{ cursor: "pointer", color: "red" }}
+        onClick={() => handleDeleteDecoration(contextMenu.decoration.id)}
+      >
+        Delete Decoration 🗑
+      </button>
+    )}
+  </div>,
+  document.body
+)}
+          </div>
+          {/* Settings section below wall: all three groups as siblings */}
+          <div className="wall-settings-section">
+            <div className="wall-settings-group">
+              <div className="wall-settings-group-title">Image Settings</div>
+              {canUseFeature('image_upload') ? (
+                <label className="inline-label">Image Upload:
+                  <input type="file" multiple onChange={handleUpload} disabled={uploading} />
+                </label>
+              ) : (
+                <label className="inline-label" style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                  🔒 Image Upload (Premium Only)
+                </label>
+              )}
+              {canUseFeature('border_style_customization') ? (
+                <label>Border Style:
+                  <select value={borderStyle} onChange={e => setBorderStyle(e.target.value)}>
+                    <option value="solid">Solid</option>
+                    <option value="dashed">Dashed</option>
+                    <option value="double">Double</option>
+                    <option value="none">None</option>
+                  </select>
+                </label>
+              ) : (
+                <label style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                  🔒 Border Style (Premium Only)
+                </label>
+              )}
+            </div>
+            <div className="wall-settings-group">
+              <div className="wall-settings-group-title">Wall Settings</div>
+              <label>Wall Color:
+                <input type="color" value={wallColor} onChange={e => setWallColor(e.target.value)} />
+              </label>
+              {canUseFeature('wall_size_customization') ? (
+                <>
+                  <label>Wall Height (px):
+                    <input type="number" min="100" max="2000" value={wallHeight} onChange={e => setWallHeight(Number(e.target.value))} />
+                  </label>
+                  <label>Wall Width (px):
+                    <input type="number" min="100" max="2000" value={wallWidth} onChange={e => setWallWidth(Number(e.target.value))} />
+                  </label>
+                </>
+              ) : (
+                <>
+                  <label style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                    🔒 Wall Height (Premium Only)
+                  </label>
+                  <label style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                    🔒 Wall Width (Premium Only)
+                  </label>
+                </>
+              )}
+            </div>
+            <div className="wall-settings-group">
+              <div className="wall-settings-group-title">Actions</div>
+              <div className="button-grid">
+                {canUseFeature('download_wall') ? (
+                  <button type="button" className="download-button" onClick={() => {
+                    const wall = document.getElementById("wall");
+                    if (!wall) return;
+                    const images = wall.querySelectorAll('img');
+                    Promise.all(Array.from(images).map(img => {
+                      if (img.complete) return Promise.resolve();
+                      return new Promise(resolve => {
+                        img.onload = img.onerror = resolve;
+                      });
+                    })).then(() => {
+                      html2canvas(wall, { useCORS: true }).then(canvas => {
+                        const dataURL = canvas.toDataURL("image/png");
+                        const link = document.createElement("a");
+                        link.href = dataURL;
+                        link.download = "my-virtual-wall.png";
+                        link.click();
+                      });
+                    });
+                  }}>
+                    ⬇ Download
+                  </button>
+                ) : (
+                  <button type="button" className="download-button" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Download feature is not available">
+                    🔒 Download (Premium Only)
+                  </button>
+                )}
+                {canUseFeature('clear_wall') ? (
+                  <button type="button" className="clear-wall-button" onClick={() => { setImages([]); setDecorations([]); }}>
+                    🗑 Clear
+                  </button>
+                ) : (
+                  <button type="button" className="clear-wall-button" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Clear feature is not available">
+                    🔒 Clear
+                  </button>
+                )}
+                {canUseFeature('remove_background') ? (
+                  <button type="button" className="remove-wallpaper-button" onClick={() => setWallpaper(null)}>
+                    🗑 Remove BG
+                  </button>
+                ) : (
+                  <button type="button" className="remove-wallpaper-button" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Remove background feature is not available">
+                    🔒 Remove BG
+                  </button>
+                )}
+                {canUseFeature('save_wall') ? (
+                  <button type="button" className="submit-wall-button" onClick={handleSubmitWall}>
+                    ✅ Save
+                  </button>
+                ) : (
+                  <button type="button" className="submit-wall-button" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Save feature is not available">
+                    🔒 Save
+                  </button>
+                )}
+                {canUseFeature('load_wall') ? (
+                  <button type="button" className="load-wall-button" onClick={handleLoadWall}>
+                    🔄 Load Wall
+                  </button>
+                ) : (
+                  <button type="button" className="load-wall-button" disabled style={{ opacity: 0.5, cursor: 'not-allowed' }} title="Load wall feature is not available">
+                    🔒 Load Wall
+                  </button>
+                )}
+              </div>
+            </div>
+            {uploading && <div style={{color: '#1976d2', margin: '8px 0'}}>Uploading...</div>}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

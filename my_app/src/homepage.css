@@ -1,0 +1,26 @@
+.get-prime-btn-nav {
+  margin: 0 12px;
+  padding: 7px 18px;
+  background: linear-gradient(90deg, #00b4ff 0%, #0077ff 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 1px 6px 0 rgba(0,180,255,0.10);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.18s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.get-prime-btn-nav:hover {
+  background: linear-gradient(90deg, #0077ff 0%, #00b4ff 100%);
+  box-shadow: 0 2px 12px 0 #00b4ff33;
+  transform: scale(1.05);
+}
+.get-prime-btn-nav::before {
+  content: "\1F451 "; /* Crown emoji */
+  font-size: 1.1em;
+  margin-right: 4px;
+} 
