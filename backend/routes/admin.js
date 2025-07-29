@@ -98,7 +98,6 @@ router.put('/users/:id', verifyToken, requireAdmin, async (req, res) => {
     }
     // Fetch updated user info
     const [users2] = await db.execute('SELECT username, email FROM users WHERE id = ?', [userId]);
-    // Send email notification
     if (users2.length > 0) {
       let transporter = require('nodemailer').createTransport({
         host: process.env.EMAIL_HOST,
@@ -112,8 +111,8 @@ router.put('/users/:id', verifyToken, requireAdmin, async (req, res) => {
       await transporter.sendMail({
         from: 'Virtual Altar <no-reply@virtualaltar.com>',
         to: users2[0].email,
-        subject: 'Your Virtual Altar Account Details Updated by Admin',
-        html: `<p>Hello ${users2[0].username},</p><p>Your Virtual Altar account details were updated by an administrator. If this wasn’t you, please contact support immediately.</p>`
+        subject: 'Your Virtual Altar Account Has Been Updated by Admin',
+        html: `<p>Hello ${users2[0].username},</p><p>Your Virtual Altar account has been updated by an administrator. Your new role is: ${role}</p>`
       });
     }
     res.json({ message: 'User updated successfully' });
@@ -147,6 +146,119 @@ router.get('/users-altars', verifyToken, requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Admin get all altars error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/admin/test-db - Test database queries (admin only)
+router.get('/test-db', verifyToken, requireAdmin, async (req, res) => {
+  try {
+    // Test users table
+    const [usersResult] = await db.execute('SELECT COUNT(*) as count FROM users');
+    const totalUsers = usersResult[0].count;
+    
+    // Test walls table
+    const [wallsResult] = await db.execute('SELECT COUNT(*) as count FROM walls');
+    const totalWalls = wallsResult[0].count;
+    
+    // Test premium users
+    const [premiumResult] = await db.execute('SELECT COUNT(*) as count FROM users WHERE isPremium = 1');
+    const premiumUsers = premiumResult[0].count;
+    
+    // Test profile photos
+    const [photosResult] = await db.execute('SELECT COUNT(*) as count FROM users WHERE profile_photo IS NOT NULL');
+    const profilePhotos = photosResult[0].count;
+    
+    res.json({
+      message: 'Database test successful',
+      totalUsers,
+      totalWalls,
+      premiumUsers,
+      profilePhotos,
+      tables: {
+        users: totalUsers,
+        walls: totalWalls
+      }
+    });
+  } catch (error) {
+    console.error('Database test error:', error);
+    res.status(500).json({ error: 'Database test failed', message: error.message });
+  }
+});
+
+// GET /api/admin/dashboard-stats - Get dashboard statistics (admin only)
+router.get('/dashboard-stats', verifyToken, requireAdmin, async (req, res) => {
+  try {
+    // Get total users (excluding admins)
+    const [totalUsersResult] = await db.execute('SELECT COUNT(*) as count FROM users WHERE role = "user"');
+    const totalUsers = totalUsersResult[0].count;
+
+    // Get total altars (using walls table)
+    const [totalAltarsResult] = await db.execute('SELECT COUNT(*) as count FROM walls');
+    const totalAltars = totalAltarsResult[0].count;
+
+    // Get premium users
+    const [premiumUsersResult] = await db.execute('SELECT COUNT(*) as count FROM users WHERE isPremium = 1');
+    const premiumUsers = premiumUsersResult[0].count;
+
+    // Get total photos (count files in uploads directory or use a different approach)
+    // For now, we'll count profile photos and estimate total photos
+    const [profilePhotosResult] = await db.execute('SELECT COUNT(*) as count FROM users WHERE profile_photo IS NOT NULL');
+    const profilePhotos = profilePhotosResult[0].count;
+    // Estimate total photos as 3x profile photos (assuming users upload multiple photos per altar)
+    const totalPhotos = profilePhotos * 3;
+
+    // Get recent activity (last 10 user registrations and altar creations)
+    const [recentUsers] = await db.execute(`
+      SELECT username, created_at 
+      FROM users 
+      WHERE role = 'user' 
+      ORDER BY created_at DESC 
+      LIMIT 5
+    `);
+
+    const [recentAltars] = await db.execute(`
+      SELECT w.name, u.username, w.created_at 
+      FROM walls w
+      JOIN users u ON w.user_id = u.id 
+      ORDER BY w.created_at DESC 
+      LIMIT 5
+    `);
+
+    // Format recent activity
+    const recentActivity = [];
+    
+    // Add recent user registrations
+    recentUsers.forEach(user => {
+      recentActivity.push({
+        icon: '👤',
+        text: `New user registered: ${user.username}`,
+        time: new Date(user.created_at).toLocaleDateString()
+      });
+    });
+
+    // Add recent altar creations
+    recentAltars.forEach(altar => {
+      recentActivity.push({
+        icon: '🕯️',
+        text: `New altar created: ${altar.name} by ${altar.username}`,
+        time: new Date(altar.created_at).toLocaleDateString()
+      });
+    });
+
+    // Sort by date (most recent first) and limit to 10 items
+    recentActivity.sort((a, b) => new Date(b.time) - new Date(a.time));
+    recentActivity.splice(10);
+
+    res.json({
+      totalUsers,
+      totalAltars,
+      premiumUsers,
+      totalPhotos,
+      recentActivity
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({ error: 'Failed to fetch dashboard statistics' });
   }
 });
 

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './pages.css';
-import { Link ,useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
 function Signup() {
     const navigate = useNavigate();
     const [username, setusername] = useState("");
@@ -10,35 +11,72 @@ function Signup() {
     const [passwordStrength, setPasswordStrength] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showRePassword, setShowRePassword] = useState(false);
+    const [profilePhoto, setProfilePhoto] = useState(null);
     // OTP-related state
     const [otpStep, setOtpStep] = useState(false);
     const [otp, setOtp] = useState("");
     const [otpError, setOtpError] = useState("");
     const [loading, setLoading] = useState(false);
     const [infoMsg, setInfoMsg] = useState("");
-    const [otpTimer, setOtpTimer] = useState(300); // 5 minutes in seconds
+    const [otpTimer, setOtpTimer] = useState(180); // 3 minutes in seconds
+    const [canResend, setCanResend] = useState(false);
     const [otpExpired, setOtpExpired] = useState(false);
+
+    useEffect(() => {
+        function updateProfilePhoto() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                const userInfo = localStorage.getItem('userInfo');
+                if (userInfo) {
+                    const parsed = JSON.parse(userInfo);
+                    if (parsed.profile_photo) {
+                        setProfilePhoto(`http://localhost:5000/uploads/${parsed.profile_photo}`);
+                        return;
+                    }
+                }
+                setProfilePhoto('');
+            } else {
+                setProfilePhoto(null);
+            }
+        }
+        updateProfilePhoto();
+        window.addEventListener('storage', updateProfilePhoto);
+        return () => window.removeEventListener('storage', updateProfilePhoto);
+    }, []);
 
     // Password strength checker function
     function checkPasswordStrength(pw) {
-      let strength = 0;
-      if (pw.length >= 8) strength++;
-      if (/[A-Z]/.test(pw)) strength++;
-      if (/[a-z]/.test(pw)) strength++;
-      if (/[0-9]/.test(pw)) strength++;
-      if (/[^A-Za-z0-9]/.test(pw)) strength++;
-      if (pw.length === 0) return "";
-      if (strength <= 2) return "Weak password";
-      if (strength === 3 || strength === 4) return "Medium password";
-      if (strength === 5) return "Strong password";
-      return "Weak password";
+      const validations = {
+        length: pw.length >= 8,
+        uppercase: /[A-Z]/.test(pw),
+        lowercase: /[a-z]/.test(pw),
+        number: /[0-9]/.test(pw),
+        special: /[^A-Za-z0-9]/.test(pw)
+      };
+      
+      const passedValidations = Object.values(validations).filter(Boolean).length;
+      
+      if (pw.length === 0) return { strength: "", validations, passedValidations };
+      if (passedValidations <= 2) return { strength: "Weak", validations, passedValidations };
+      if (passedValidations === 3 || passedValidations === 4) return { strength: "Medium", validations, passedValidations };
+      if (passedValidations === 5) return { strength: "Strong", validations, passedValidations };
+      return { strength: "Weak", validations, passedValidations };
     }
+
     const handlesubmit = async (e) => {
         e.preventDefault();
         if (password !== repassword) {
             alert("passwords do not match");
             return;
         }
+        
+        // Check if password is strong enough
+        const passwordCheck = checkPasswordStrength(password);
+        if (passwordCheck.strength !== "Strong") {
+            alert("Please create a strong password that meets all requirements.");
+            return;
+        }
+        
         setLoading(true);
         setOtpError("");
         setInfoMsg("");
@@ -100,6 +138,28 @@ function Signup() {
         setLoading(false);
     };
 
+    // Start OTP timer when otpStep becomes true
+    React.useEffect(() => {
+      let interval;
+      if (otpStep) {
+        setOtpTimer(180);
+        setCanResend(false);
+        setOtpExpired(false);
+        interval = setInterval(() => {
+          setOtpTimer((prev) => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              setCanResend(true);
+              setOtpExpired(true);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
+      return () => clearInterval(interval);
+    }, [otpStep]);
+
     // Resend OTP handler
     const handleResendOtp = async () => {
       setLoading(true);
@@ -113,155 +173,240 @@ function Signup() {
         });
         const data = await response.json();
         if (response.ok) {
-          setOtpTimer(300);
+          setOtpTimer(180);
+          setCanResend(false);
           setOtpExpired(false);
           setInfoMsg('OTP resent to your email.');
+          // Restart timer
+          let interval = setInterval(() => {
+            setOtpTimer((prev) => {
+              if (prev <= 1) {
+                clearInterval(interval);
+                setCanResend(true);
+                setOtpExpired(true);
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
         } else {
           setOtpError(data.error || 'Failed to resend OTP');
         }
       } catch (err) {
         setOtpError('Error connecting to server');
-        }
+      }
       setLoading(false);
     };
 
-    // Start OTP timer when otpStep becomes true
-    React.useEffect(() => {
-      let interval;
-      if (otpStep) {
-        setOtpTimer(300);
-        setOtpExpired(false);
-        interval = setInterval(() => {
-          setOtpTimer((prev) => {
-            if (prev <= 1) {
-              clearInterval(interval);
-              setOtpExpired(true);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      }
-      return () => clearInterval(interval);
-    }, [otpStep]);
-
     return (
-        <div className="signup-container">
-            <header className="header combined-header">
-              <span className="site-title">MiAltar</span>
-              <nav className="header-nav">
-                <Link to="/">Home</Link>
-                <Link to="/login">Login</Link>
-                <Link to="/signup" className="active">Sign Up</Link>
-              </nav>
+        <div className="signup-page">
+            {/* Header */}
+            <header className="header">
+                <div className="container">
+                    <div className="header-content">
+                        <div className="logo">
+                            <span className="logo-text">MiAltar</span>
+                            <span className="logo-subtitle">Virtual Memorial</span>
+                        </div>
+                        <nav className="nav">
+                            <Link to="/" className="nav-link">Home</Link>
+                            {profilePhoto !== null ? (
+                                <button
+                                    onClick={() => navigate('/profile')}
+                                    className="profile-button"
+                                    title="Profile"
+                                    aria-label="Profile"
+                                >
+                                    {profilePhoto ? (
+                                        <img
+                                            src={profilePhoto}
+                                            alt="Profile"
+                                            className="profile-photo"
+                                        />
+                                    ) : (
+                                        <span className="profile-placeholder">👤</span>
+                                    )}
+                                </button>
+                            ) : (
+                                <>
+                                    <Link to="/login" className="btn btn-ghost">Login</Link>
+                                    <Link to="/signup" className="btn btn-primary">Sign Up</Link>
+                                </>
+                            )}
+                        </nav>
+                    </div>
+                </div>
             </header>
-        <div className="signup-content">
-            <h2>Sign Up</h2>
-            <p>Create your account</p>
-                {!otpStep ? (
-            <form onSubmit={handlesubmit}>
-              <div className="form-group">
-                <label>Username:</label>
-                <input 
-                    type="text"
-                    value={username}
-                                onChange={(e) => setusername(e.target.value)}
-                    placeholder="Username"
-                    required
-                />
-              </div>
-              <div className="form-group">
-                <label>Email:</label>
-                <input 
-                    type="email"
-                    value={mail}
-                                onChange={(e) => setmail(e.target.value)}
-                    placeholder="Email"
-                    required
-                />
-              </div>
-              <div className="form-group">
-                <label>Password:</label>
-                <input 
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                                onChange={(e) => {
-                      setpassword(e.target.value);
-                      setPasswordStrength(checkPasswordStrength(e.target.value));
-                    }}
-                    placeholder="Password"
-                    required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  style={{ marginLeft: "8px", padding: "2px 8px", fontSize: "0.9em" }}
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-                {password && (
-                  <div style={{
-                    color: passwordStrength === "Strong password" ? "green" : passwordStrength === "Medium password" ? "orange" : "red",
-                    fontWeight: "bold",
-                    marginTop: "4px"
-                  }}>
-                    {passwordStrength}
-                  </div>
-                )}
-              </div>
-              <div className="form-group">
-                <label>Confirm Password:</label>
-                <input 
-                    type={showRePassword ? "text" : "password"}
-                    value={repassword}
-                                onChange={(e) => setrepassword(e.target.value)}
-                    placeholder="Confirm Password"
-                    required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowRePassword((prev) => !prev)}
-                  style={{ marginLeft: "8px", padding: "2px 8px", fontSize: "0.9em" }}
-                >
-                  {showRePassword ? "Hide" : "Show"}
-                </button>
-              </div>
-                        <button type="submit" disabled={loading}>{loading ? "Sending OTP..." : "Sign Up"}</button>
-                        {otpError && <div style={{ color: 'red', marginTop: '8px' }}>{otpError}</div>}
-                        {infoMsg && <div style={{ color: 'green', marginTop: '8px' }}>{infoMsg}</div>}
-                    </form>
-                ) : (
-                    <form onSubmit={handleOtpSubmit}>
-                        <div className="form-group">
-                            <label>Enter OTP sent to your email:</label>
-                            <input
-                                type="text"
-                                value={otp}
-                                onChange={(e) => setOtp(e.target.value)}
-                                placeholder="Enter OTP"
-                                required
-                                maxLength={6}
-                                disabled={otpExpired}
-                            />
+
+            {/* Main Content */}
+            <div className="signup-main">
+                <div className="container">
+                    <div className="signup-card">
+                        <div className="signup-header">
+                            <h1 className="signup-title">Create Your Account</h1>
+                            <p className="signup-subtitle">Join MiAltar to create beautiful virtual memorials</p>
                         </div>
-                        <div style={{ marginBottom: '10px', color: otpExpired ? 'red' : '#1976d2', fontWeight: 500 }}>
-                          {otpExpired
-                            ? 'OTP expired. Please request a new one.'
-                            : `Expires in: ${String(Math.floor(otpTimer / 60)).padStart(2, '0')}:${String(otpTimer % 60).padStart(2, '0')}`}
-                        </div>
-                        <button type="submit" disabled={loading || otpExpired}>{loading ? "Verifying..." : "Verify OTP & Complete Signup"}</button>
-                        {otpExpired && (
-                          <button type="button" onClick={handleResendOtp} disabled={loading} style={{ marginTop: 8, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 18px', fontWeight: 600, cursor: 'pointer' }}>
-                            {loading ? 'Resending...' : 'Resend OTP'}
-                          </button>
+
+                        {!otpStep ? (
+                            <form onSubmit={handlesubmit} className="signup-form">
+                                <div className="form-group">
+                                    <label className="form-label">Username</label>
+                                    <input 
+                                        type="text"
+                                        value={username}
+                                        onChange={(e) => setusername(e.target.value)}
+                                        placeholder="Enter your username"
+                                        className="form-input"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Email Address</label>
+                                    <input 
+                                        type="email"
+                                        value={mail}
+                                        onChange={(e) => setmail(e.target.value)}
+                                        placeholder="Enter your email"
+                                        className="form-input"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Password</label>
+                                    <div className="password-input-container">
+                                        <input 
+                                            type={showPassword ? "text" : "password"}
+                                            value={password}
+                                            onChange={(e) => {
+                                                setpassword(e.target.value);
+                                                setPasswordStrength(checkPasswordStrength(e.target.value));
+                                            }}
+                                            placeholder="Create a strong password"
+                                            className="form-input"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword((prev) => !prev)}
+                                            className="password-toggle"
+                                        >
+                                            {showPassword ? "👁️" : "👁️‍🗨️"}
+                                        </button>
+                                    </div>
+                                    {password && (
+                                        <div className="password-requirements">
+                                            <div className={`password-strength ${passwordStrength.strength?.toLowerCase()}`}>
+                                                Password Strength: {passwordStrength.strength || "Enter password"}
+                                            </div>
+                                            <div className="validation-checks">
+                                                <div className={`validation-check ${passwordStrength.validations?.length ? 'passed' : 'failed'}`}>
+                                                    {passwordStrength.validations?.length ? '✅' : '❌'} At least 8 characters
+                                                </div>
+                                                <div className={`validation-check ${passwordStrength.validations?.uppercase ? 'passed' : 'failed'}`}>
+                                                    {passwordStrength.validations?.uppercase ? '✅' : '❌'} One uppercase letter (A-Z)
+                                                </div>
+                                                <div className={`validation-check ${passwordStrength.validations?.lowercase ? 'passed' : 'failed'}`}>
+                                                    {passwordStrength.validations?.lowercase ? '✅' : '❌'} One lowercase letter (a-z)
+                                                </div>
+                                                <div className={`validation-check ${passwordStrength.validations?.number ? 'passed' : 'failed'}`}>
+                                                    {passwordStrength.validations?.number ? '✅' : '❌'} One number (0-9)
+                                                </div>
+                                                <div className={`validation-check ${passwordStrength.validations?.special ? 'passed' : 'failed'}`}>
+                                                    {passwordStrength.validations?.special ? '✅' : '❌'} One special character (!@#$%^&*)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="form-group">
+                                    <label className="form-label">Confirm Password</label>
+                                    <div className="password-input-container">
+                                        <input 
+                                            type={showRePassword ? "text" : "password"}
+                                            value={repassword}
+                                            onChange={(e) => setrepassword(e.target.value)}
+                                            placeholder="Confirm your password"
+                                            className="form-input"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowRePassword((prev) => !prev)}
+                                            className="password-toggle"
+                                        >
+                                            {showRePassword ? "👁️" : "👁️‍🗨️"}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
+                                    {loading ? "Sending OTP..." : "Create Account"}
+                                </button>
+
+                                {otpError && <div className="message message-error">{otpError}</div>}
+                                {infoMsg && <div className="message message-success">{infoMsg}</div>}
+                            </form>
+                        ) : (
+                            <form onSubmit={handleOtpSubmit} className="signup-form">
+                                <div className="form-group">
+                                    <label className="form-label">Enter OTP</label>
+                                    <input
+                                        type="text"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value)}
+                                        placeholder="Enter 6-digit OTP"
+                                        className="form-input"
+                                        required
+                                        maxLength={6}
+                                        disabled={otpExpired}
+                                    />
+                                    <div className={`otp-timer ${otpExpired ? 'expired' : ''}`}>
+                                        {!canResend
+                                            ? `Expires in: ${String(Math.floor(otpTimer / 60)).padStart(2, '0')}:${String(otpTimer % 60).padStart(2, '0')}`
+                                            : 'OTP expired. You can request a new one.'}
+                                    </div>
+                                </div>
+
+                                <button type="submit" className="btn btn-primary btn-full" disabled={loading || otpExpired}>
+                                    {loading ? "Verifying..." : "Verify OTP & Complete Signup"}
+                                </button>
+
+                                {canResend && (
+                                    <button
+                                        type="button"
+                                        onClick={handleResendOtp}
+                                        disabled={loading}
+                                        className="btn btn-secondary btn-full"
+                                    >
+                                        {loading ? 'Resending...' : 'Resend OTP'}
+                                    </button>
+                                )}
+
+                                {otpError && <div className="message message-error">{otpError}</div>}
+                                {infoMsg && <div className="message message-success">{infoMsg}</div>}
+                            </form>
                         )}
-                        {otpError && <div style={{ color: 'red', marginTop: '8px' }}>{otpError}</div>}
-                        {infoMsg && <div style={{ color: 'green', marginTop: '8px' }}>{infoMsg}</div>}
-            </form>
-                )}
-            <p>Already have an account? <Link to="/login">Login</Link></p>
-        </div>
+
+                        <div className="signup-footer">
+                            <p>Already have an account? <Link to="/login" className="text-primary">Login here</Link></p>
+                        </div>
+                    </div>
+                    
+                    {/* Visual section for larger screens */}
+                    <div className="signup-visual">
+                        <h2>Start Your Memorial Journey</h2>
+                        <p>Create meaningful virtual altars to honor and remember your loved ones with beautiful designs and heartfelt tributes</p>
+                        <div className="altar-preview">
+                            <span style={{fontSize: '3rem'}}>🕯️</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
+
 export default Signup;

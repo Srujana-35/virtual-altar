@@ -279,7 +279,7 @@ router.post('/share/private', verifyToken, async (req, res) => {
     }
 
     // 4. Return the share link
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const frontendUrl = 'http://localhost:3000';
     res.json({ privateLink: `${frontendUrl}/wall/view/${shareToken}` });
   } catch (error) {
     console.error('Private share error:', error);

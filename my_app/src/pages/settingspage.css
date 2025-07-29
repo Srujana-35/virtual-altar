@@ -1,124 +1,568 @@
-/* settingspage.css - Styles for SettingsPage.js and OtpModal */
+/* Modern Settings Page Styles */
 
-.otp-modal-backdrop {
+/* Settings Dialog Backdrop */
+.settings-dialog-backdrop {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 40, 80, 0.22);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
   z-index: 3000;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
+}
+
+/* Settings Dialog Modal */
+.settings-dialog-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  min-width: 800px;
+  min-height: 500px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  position: relative;
+  animation: fadeInScale 0.3s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Settings Sidebar */
+.settings-sidebar {
+  width: 240px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e3e9f3 100%);
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 32px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  position: relative;
+  border-left: 4px solid transparent;
+}
+
+.settings-sidebar-item:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: var(--primary-color);
+}
+
+.settings-sidebar-item.active {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.1) 100%);
+  color: var(--primary-color);
+  font-weight: 600;
+  border-left-color: var(--primary-color);
+}
+
+.sidebar-icon {
+  font-size: 1.2rem;
+  width: 24px;
+  text-align: center;
+}
+
+.sidebar-label {
+  flex: 1;
+}
+
+/* Settings Main Content */
+.settings-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: white;
+}
+
+.settings-dialog-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.settings-dialog-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+}
+
+.settings-content {
+  padding: 48px 40px 32px 40px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.settings-section-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 32px;
+  text-transform: capitalize;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Settings Forms */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-input {
+  padding: 12px 16px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.form-error {
+  color: #dc3545;
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: rgba(220, 53, 69, 0.1);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid #dc3545;
+}
+
+/* Checkbox Styles */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 12px;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+
+.checkbox-label:hover {
+  background: rgba(102, 126, 234, 0.05);
+}
+
+.checkbox-input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary-color);
+}
+
+.checkbox-text {
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Password Requirements */
+.password-requirements {
+  margin-top: 12px;
+  padding: 16px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.password-strength {
+  font-weight: 600;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.password-strength.weak {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.password-strength.medium {
+  background: rgba(255, 193, 7, 0.1);
+  color: #ffc107;
+}
+
+.password-strength.strong {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+}
+
+.validation-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.validation-check {
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.validation-check.passed {
+  color: #28a745;
+}
+
+.validation-check.failed {
+  color: #dc3545;
+}
+
+/* Altars Section */
+.altars-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.altars-header {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.altars-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.altars-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.altars-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.altars-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.altars-icon {
+  font-size: 2.5rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  border-radius: 12px;
+  color: white;
+}
+
+.altars-text h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.altars-text p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.altars-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* OTP Modal Styles */
+.otp-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
 
 .otp-modal-box {
-  background: linear-gradient(135deg, #fafdff 0%, #e3f0ff 100%);
-  border-radius: 28px;
-  box-shadow: 0 10px 48px 0 rgba(0,80,180,0.18), 0 2px 8px 0 rgba(0,180,255,0.10);
-  padding: 48px 44px 36px 44px;
-  min-width: 380px;
-  max-width: 98vw;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 40px;
+  min-width: 400px;
+  max-width: 90vw;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 2.5px solid #1976d2;
   position: relative;
-  animation: fadeInScale 0.25s;
-}
-
-@keyframes fadeInScale {
-  from { opacity: 0; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
+  animation: fadeInScale 0.3s ease-out;
 }
 
 .otp-modal-title {
-  font-size: 2.1rem;
-  color: #1976d2;
-  font-weight: 800;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--primary-color);
   margin-bottom: 16px;
-  letter-spacing: 1px;
-  text-shadow: 0 2px 8px #e3f0ff;
 }
 
 .otp-modal-desc {
-  color: #333;
-  margin-bottom: 28px;
-  font-size: 1.18rem;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+  font-size: 1rem;
   line-height: 1.5;
 }
 
 .otp-modal-input {
-  padding: 18px;
+  padding: 16px;
   border-radius: 12px;
-  border: 2px solid #bdbdbd;
-  font-size: 1.6rem;
-  width: 180px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  font-size: 1.5rem;
+  width: 200px;
   text-align: center;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   outline: none;
-  background: #f8fbff;
-  transition: border 0.18s, box-shadow 0.18s;
-  box-shadow: 0 1px 8px rgba(25, 118, 210, 0.06);
+  background: white;
+  transition: all 0.3s ease;
   letter-spacing: 4px;
 }
+
 .otp-modal-input:focus {
-  border: 2px solid #1976d2;
-  background: #eaf6ff;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .otp-modal-timer {
-  margin-bottom: 18px;
-  color: #1976d2;
-  font-weight: 700;
-  font-size: 1.18rem;
-  letter-spacing: 1px;
-  background: #eaf6ff;
+  margin-bottom: 20px;
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 1rem;
+  background: rgba(102, 126, 234, 0.1);
   border-radius: 8px;
-  padding: 6px 18px;
+  padding: 8px 16px;
   display: inline-block;
-  box-shadow: 0 1px 4px #e3f0ff;
 }
+
 .otp-modal-timer.expired {
-  color: #d32f2f;
-  background: #ffeaea;
+  color: #dc3545;
+  background: rgba(220, 53, 69, 0.1);
 }
 
 .otp-modal-error {
-  color: #d32f2f;
-  margin-bottom: 14px;
-  font-weight: 600;
-  font-size: 1.08rem;
-  background: #ffeaea;
+  color: #dc3545;
+  margin-bottom: 16px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  background: rgba(220, 53, 69, 0.1);
   border-radius: 8px;
-  padding: 6px 12px;
+  padding: 8px 16px;
   display: inline-block;
 }
 
 .otp-modal-actions {
   display: flex;
-  gap: 22px;
+  gap: 16px;
   justify-content: center;
-  margin-top: 18px;
 }
+
 .otp-modal-btn {
-  background: linear-gradient(90deg, #1976d2 60%, #64b5f6 100%);
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.18rem;
-  padding: 14px 38px;
-  border-radius: 12px;
-  border: none;
-  box-shadow: 0 2px 12px rgba(25, 118, 210, 0.13);
-  transition: background 0.18s, transform 0.18s;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  border: none;
+  font-size: 0.95rem;
 }
-.otp-modal-btn:disabled {
-  background: #bdbdbd;
-  color: #fff;
+
+.otp-modal-btn.verify {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: white;
+}
+
+.otp-modal-btn.verify:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.otp-modal-btn.verify:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
 }
+
 .otp-modal-btn.cancel {
-  background: #888;
-  font-weight: 700;
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--text-secondary);
+}
+
+.otp-modal-btn.cancel:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.otp-modal-btn.resend {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.otp-modal-btn.resend:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(40, 167, 69, 0.3);
+}
+
+.otp-modal-btn.resend:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .settings-dialog-modal {
+    flex-direction: column;
+    min-width: 95vw;
+    min-height: 80vh;
+  }
+  
+  .settings-sidebar {
+    width: 100%;
+    flex-direction: row;
+    padding: 16px;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  
+  .settings-sidebar-item {
+    padding: 12px 16px;
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 3px solid transparent;
+  }
+  
+  .settings-sidebar-item.active {
+    border-left: none;
+    border-bottom-color: var(--primary-color);
+  }
+  
+  .settings-content {
+    padding: 24px 20px;
+  }
+  
+  .settings-section-title {
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+  }
+  
+  .altars-actions {
+    flex-direction: column;
+  }
+  
+  .otp-modal-box {
+    padding: 24px;
+    min-width: 90vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-sidebar-item {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .sidebar-icon {
+    font-size: 1rem;
+    width: 20px;
+  }
+  
+  .settings-content {
+    padding: 20px 16px;
+  }
+  
+  .altars-info {
+    flex-direction: column;
+    text-align: center;
+  }
 } 

@@ -177,21 +177,7 @@ router.put('/update-profile', verifyToken, async (req, res) => {
       await db.execute('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
       didUpdate = true;
       // Send password changed notification
-      let transporter = require('nodemailer').createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
-        secure: false,
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
-        }
-      });
-      await transporter.sendMail({
-        from: 'Virtual Altar <no-reply@virtualaltar.com>',
-        to: users[0].email,
-        subject: 'Your Virtual Altar Password Has Been Changed',
-        html: `<p>Hello ${users[0].username},</p><p>Your Virtual Altar account password has been changed. If this wasn’t you, please reset your password or contact support immediately.</p>`
-      });
+      await sendPasswordChangedEmail(users[0].email, users[0].username);
     }
     // Update username/email if provided
     let query = 'UPDATE users SET ';
@@ -237,6 +223,29 @@ router.put('/update-profile', verifyToken, async (req, res) => {
     res.json({ message: 'Profile updated', user: users2[0] });
   } catch (error) {
     res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
+// Edit username with password verification
+router.put('/edit-username', verifyToken, async (req, res) => {
+  const userId = req.user.userId;
+  const { username, currentPassword } = req.body;
+  if (!username || !currentPassword) {
+    return res.status(400).json({ error: 'Username and current password are required.' });
+  }
+  try {
+    // Fetch current password hash from DB
+    const [users] = await db.execute('SELECT password FROM users WHERE id = ?', [userId]);
+    if (!users.length) return res.status(404).json({ error: 'User not found' });
+    const isValid = await bcrypt.compare(currentPassword, users[0].password);
+    if (!isValid) return res.status(400).json({ error: 'Current password is incorrect.' });
+    // Update username
+    await db.execute('UPDATE users SET username = ? WHERE id = ?', [username, userId]);
+    // Fetch and return updated user info
+    const [users2] = await db.execute('SELECT id, username, email, profile_photo FROM users WHERE id = ?', [userId]);
+    res.json({ message: 'Username updated', user: users2[0] });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update username' });
   }
 });
 
@@ -371,6 +380,11 @@ router.post('/reset-password', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     // Update password in DB
     await db.execute('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+    // Fetch user email and username
+    const [users] = await db.execute('SELECT email, username FROM users WHERE id = ?', [userId]);
+    if (users.length > 0) {
+      await sendPasswordChangedEmail(users[0].email, users[0].username);
+    }
     res.json({ message: 'Password reset successful.' });
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
@@ -392,7 +406,7 @@ function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Helper: Send OTP email
+// Helper: Send OTP email for signup
 async function sendOtpEmail(email, otp) {
   let transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
@@ -407,33 +421,63 @@ async function sendOtpEmail(email, otp) {
     from: 'Virtual Altar <no-reply@virtualaltar.com>',
     to: email,
     subject: 'Your OTP for Virtual Altar Signup',
-    html: `<p>Your OTP for Virtual Altar signup is: <b>${otp}</b></p><p>This code will expire in 5 minutes.</p>`
+    html: `<p>Your OTP for Virtual Altar signup is: <b>${otp}</b></p><p>This code will expire in 3 minutes.</p>`
   });
 }
 
-// Request OTP for signup
+// Helper: Send OTP email for email change
+async function sendOtpEmailForEdit(email, otp) {
+  let transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+  await transporter.sendMail({
+    from: 'Virtual Altar <no-reply@virtualaltar.com>',
+    to: email,
+    subject: 'Your OTP for Email Change - Virtual Altar',
+    html: `<p>Your OTP for changing your email address is: <b>${otp}</b></p><p>This code will expire in 3 minutes.</p><p>If you did not request this change, please ignore this email.</p>`
+  });
+}
+
+// Request OTP for signup or email change
 router.post('/request-otp', async (req, res) => {
-  const { email } = req.body;
+  const { email, context = 'signup' } = req.body;
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
   }
   try {
-    // Check if user already exists
-    const [existingUsers] = await db.execute(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
-    );
-    if (existingUsers.length > 0) {
-      return res.status(400).json({ error: 'User with this email already exists' });
+    if (context === 'edit') {
+      // For email change, don't check if user exists (they are already logged in)
+      const otp = generateOTP();
+      otpStore[email] = {
+        otp,
+        expires: Date.now() + 5 * 60 * 1000 // 5 minutes
+      };
+      await sendOtpEmailForEdit(email, otp);
+      res.json({ message: 'OTP sent to email' });
+    } else {
+      // For signup, check if user already exists
+      const [existingUsers] = await db.execute(
+        'SELECT * FROM users WHERE email = ?',
+        [email]
+      );
+      if (existingUsers.length > 0) {
+        return res.status(400).json({ error: 'User with this email already exists' });
+      }
+      // Generate OTP and store with expiry
+      const otp = generateOTP();
+      otpStore[email] = {
+        otp,
+        expires: Date.now() + 5 * 60 * 1000 // 5 minutes
+      };
+      await sendOtpEmail(email, otp);
+      res.json({ message: 'OTP sent to email' });
     }
-    // Generate OTP and store with expiry
-    const otp = generateOTP();
-    otpStore[email] = {
-      otp,
-      expires: Date.now() + 5 * 60 * 1000 // 5 minutes
-    };
-    await sendOtpEmail(email, otp);
-    res.json({ message: 'OTP sent to email' });
   } catch (error) {
     console.error('Request OTP error:', error);
     res.status(500).json({ error: 'Failed to send OTP' });
@@ -505,6 +549,26 @@ router.post('/verify-otp', async (req, res) => {
     res.status(500).json({ error: 'Failed to verify OTP or create user' });
   }
 });
+// Request OTP for profile/email edit (does NOT check if user exists)
+router.post('/request-otp-edit', async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+  try {
+    // Generate OTP and store with expiry (3 minutes for consistency with frontend)
+    const otp = generateOTP();
+    otpStore[email] = {
+      otp,
+      expires: Date.now() + 3 * 60 * 1000 // 3 minutes
+    };
+    await sendOtpEmail(email, otp);
+    res.json({ message: 'OTP sent to email' });
+  } catch (error) {
+    console.error('Request OTP (edit) error:', error);
+    res.status(500).json({ error: 'Failed to send OTP' });
+  }
+});
 
 // Verify OTP for email edit (no user existence check)
 router.post('/verify-otp-edit', async (req, res) => {
@@ -535,5 +599,24 @@ router.post('/verify-otp-edit', async (req, res) => {
 router.get('/test', (req, res) => {
   res.json({ message: 'Auth routes are working!' });
 });
+
+// Helper: Send password changed notification
+async function sendPasswordChangedEmail(email, username) {
+  let transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST,
+    port: process.env.EMAIL_PORT,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+  await transporter.sendMail({
+    from: 'Virtual Altar <no-reply@virtualaltar.com>',
+    to: email,
+    subject: 'Your Virtual Altar Password Has Been Changed',
+    html: `<p>Hello ${username || ''},</p><p>Your Virtual Altar account password has been changed. If this wasn’t you, please reset your password or contact support immediately.</p>`
+  });
+}
 
 module.exports = { router, verifyToken };

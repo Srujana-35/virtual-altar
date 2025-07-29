@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './pages.css';
 import './settingspage.css';
 
@@ -7,25 +8,29 @@ const SETTINGS_SECTIONS = [
   { key: 'security', label: 'Security', icon: '🔒' },
   { key: 'preferences', label: 'Preferences', icon: '⚙️' },
   { key: 'privacy', label: 'Privacy', icon: '🛡️' },
+  { key: 'altars', label: 'My Saved Altars', icon: '🕯️' },
 ];
 
 function OtpModal({ open, email, onClose, onVerified }) {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [timer, setTimer] = useState(120); // 2 minutes
+  const [timer, setTimer] = useState(180); // 3 minutes
+  const [canResend, setCanResend] = useState(false);
   const timerRef = useRef();
 
   useEffect(() => {
     if (open) {
       setOtp('');
       setError('');
-      setTimer(120);
+      setTimer(180);
+      setCanResend(false);
       // Start timer
       timerRef.current = setInterval(() => {
         setTimer(t => {
           if (t <= 1) {
             clearInterval(timerRef.current);
+            setCanResend(true);
             return 0;
           }
           return t - 1;
@@ -54,6 +59,39 @@ function OtpModal({ open, email, onClose, onVerified }) {
     }
   };
 
+  const handleResendOtp = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/request-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email,
+          context: 'edit'
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to resend OTP');
+      setTimer(180);
+      setCanResend(false);
+      timerRef.current = setInterval(() => {
+        setTimer(t => {
+          if (t <= 1) {
+            clearInterval(timerRef.current);
+            setCanResend(true);
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      setError(err.message || 'Failed to resend OTP');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!open) return null;
   return (
     <div className="otp-modal-backdrop">
@@ -68,9 +106,23 @@ function OtpModal({ open, email, onClose, onVerified }) {
           className="otp-modal-input"
           maxLength={6}
         />
-        <div className={`otp-modal-timer${timer === 0 ? ' expired' : ''}`}>
-          {timer > 0 ? `OTP expires in ${Math.floor(timer/60)}:${(timer%60).toString().padStart(2, '0')}` : 'OTP expired'}
+        <div className={`otp-modal-timer${timer === 0 ? ' expired' : ''}`}
+          style={{ marginBottom: 8 }}>
+          {!canResend
+            ? `Expires in: ${String(Math.floor(timer / 60)).padStart(2, '0')}:${String(timer % 60).padStart(2, '0')}`
+            : 'OTP expired. You can request a new one.'}
         </div>
+        {canResend && (
+          <button
+            type="button"
+            className="otp-modal-btn"
+            onClick={handleResendOtp}
+            disabled={loading}
+            style={{ marginBottom: 8 }}
+          >
+            {loading ? 'Resending...' : 'Resend OTP'}
+          </button>
+        )}
         {error && <div className="otp-modal-error">{error}</div>}
         <div className="otp-modal-actions">
           <button
@@ -93,7 +145,77 @@ function OtpModal({ open, email, onClose, onVerified }) {
   );
 }
 
-export default function SettingsDialog({ open, openSection, onClose, setUserInfo }) {
+function PasswordModal({ open, onClose, onSubmit }) {
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await onSubmit(password, setError, setLoading);
+    } catch (err) {
+      setError(err.message || 'Failed to update username');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!open) return null;
+  return (
+    <div className="otp-modal-backdrop">
+      <div className="otp-modal-box">
+        <div className="otp-modal-title">Enter Password</div>
+        <div className="otp-modal-desc">Please enter your current password to confirm username change.</div>
+        <input
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="Current Password"
+          className="otp-modal-input"
+        />
+        {error && <div className="otp-modal-error">{error}</div>}
+        <div className="otp-modal-actions">
+          <button
+            className="otp-modal-btn"
+            onClick={handleSubmit}
+            disabled={loading || !password}
+          >
+            {loading ? 'Saving...' : 'Confirm'}
+          </button>
+          <button
+            className="otp-modal-btn cancel"
+            onClick={onClose}
+            disabled={loading}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Password strength checker function (same as signup)
+function checkPasswordStrength(pw) {
+  const validations = {
+    length: pw.length >= 8,
+    uppercase: /[A-Z]/.test(pw),
+    lowercase: /[a-z]/.test(pw),
+    number: /[0-9]/.test(pw),
+    special: /[^A-Za-z0-9]/.test(pw)
+  };
+  const passedValidations = Object.values(validations).filter(Boolean).length;
+  if (pw.length === 0) return { strength: "", validations, passedValidations };
+  if (passedValidations <= 2) return { strength: "Weak", validations, passedValidations };
+  if (passedValidations === 3 || passedValidations === 4) return { strength: "Medium", validations, passedValidations };
+  if (passedValidations === 5) return { strength: "Strong", validations, passedValidations };
+  return { strength: "Weak", validations, passedValidations };
+}
+
+export default function SettingsDialog({ open, openSection, onClose, setUserInfo, userInfo: userInfoProp }) {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState({
     username: '',
     email: '',
@@ -121,6 +243,12 @@ export default function SettingsDialog({ open, openSection, onClose, setUserInfo
   const [otpError, setOtpError] = useState('');
   // Sidebar section state
   const [section, setSection] = useState(openSection || 'profile');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [pendingUsername, setPendingUsername] = useState(null);
+  const [passwordStrengthSecurity, setPasswordStrengthSecurity] = useState(checkPasswordStrength(''));
+
+  // Use userInfo from prop, fallback to localStorage if not provided
+  const userInfo = userInfoProp || JSON.parse(localStorage.getItem('userInfo') || '{}');
 
   // If openSection prop changes (e.g. dialog opened with a different section), update local state
   useEffect(() => {
@@ -142,130 +270,188 @@ export default function SettingsDialog({ open, openSection, onClose, setUserInfo
   let sectionContent = null;
   if (section === 'profile') {
     sectionContent = (
-      <form className="settings-form">
-        <div className="settings-form-row">
-          <label>Username</label>
-          <input type="text" value={profile.username} onChange={e => setProfile({ ...profile, username: e.target.value })} />
-        </div>
-        <div className="settings-form-row">
-          <label>Email</label>
-          <input
-            type="email"
-            value={profile.email}
-            onChange={e => setProfile({ ...profile, email: e.target.value })}
-          />
-        </div>
-        <div className="settings-form-actions">
-          <button type="button" className="settings-save-btn" onClick={async () => {
-            if (profile.email !== originalEmail) {
-              // Send OTP and show loading state
-              setSendingOtp(true);
-              setOtpError('');
-              try {
-                const res = await fetch('http://localhost:5000/api/auth/request-otp', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email: profile.email })
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
-                setPendingProfile({ ...profile });
-                setShowOtpModal(true);
-              } catch (err) {
-                setOtpError(err.message || 'Failed to send OTP');
-              } finally {
-                setSendingOtp(false);
-              }
-              return; // <--- CRITICAL: Prevents premature update
-            }
-            // No email change, save directly
-            setSavingProfile(true);
-            const token = localStorage.getItem('token');
-            try {
-              const response = await fetch('http://localhost:5000/api/auth/update-profile', {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                  username: profile.username,
-                  email: profile.email
-                })
-              });
-              const data = await response.json();
-              if (response.ok) {
-                localStorage.setItem('userInfo', JSON.stringify(data.user));
-                if (setUserInfo) setUserInfo(data.user); // Update parent state if provided
-                alert('Profile updated!');
-                setOriginalEmail(profile.email);
-              } else {
-                alert(data.error || 'Failed to update profile');
-              }
-            } catch (err) {
-              alert('Error updating profile: ' + err.message);
-            } finally {
-              setSavingProfile(false);
-            }
-          }} disabled={savingProfile || sendingOtp}>
-            {savingProfile ? 'Saving...' : sendingOtp ? 'Sending OTP...' : 'Save Profile'}
-          </button>
-        </div>
-        {otpError && <div className="otp-modal-error" style={{ marginTop: 8 }}>{otpError}</div>}
-      </form>
+      <>
+        {/* Edit Username Form */}
+        <form className="settings-form">
+          <div className="form-group">
+            <label className="form-label">Username</label>
+            <input 
+              type="text" 
+              className="form-input"
+              value={profile.username} 
+              onChange={e => setProfile({ ...profile, username: e.target.value })} 
+            />
+          </div>
+          <div className="form-actions">
+            <button 
+              type="button" 
+              className="btn btn-primary" 
+              onClick={async () => {
+                if (profile.username !== userInfo.username) {
+                  setPendingUsername(profile.username);
+                  setShowPasswordModal(true);
+                }
+              }} 
+              disabled={savingProfile}
+            >
+              {savingProfile ? 'Saving...' : 'Edit Username'}
+            </button>
+          </div>
+        </form>
+        
+        {/* Edit Email Form */}
+        <form className="settings-form">
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              type="email"
+              className="form-input"
+              value={profile.email}
+              onChange={e => setProfile({ ...profile, email: e.target.value })}
+            />
+          </div>
+          <div className="form-actions">
+            <button 
+              type="button" 
+              className="btn btn-primary" 
+              onClick={async () => {
+                if (profile.email !== originalEmail) {
+                  setSendingOtp(true);
+                  setOtpError('');
+                  try {
+                    const res = await fetch('http://localhost:5000/api/auth/request-otp', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ 
+                        email: profile.email,
+                        context: 'edit'
+                      })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
+                    setPendingProfile({ ...profile });
+                    setShowOtpModal(true);
+                  } catch (err) {
+                    setOtpError(err.message || 'Failed to send OTP');
+                  } finally {
+                    setSendingOtp(false);
+                  }
+                }
+              }} 
+              disabled={sendingOtp}
+            >
+              {sendingOtp ? 'Sending OTP...' : 'Edit Email'}
+            </button>
+          </div>
+          {otpError && <div className="form-error">{otpError}</div>}
+        </form>
+      </>
     );
   } else if (section === 'security') {
     sectionContent = (
       <form className="settings-form">
-        <div className="settings-form-row">
-          <label>Current Password</label>
-          <input type="password" value={passwords.current} onChange={e => setPasswords({ ...passwords, current: e.target.value })} />
+        <div className="form-group">
+          <label className="form-label">Current Password</label>
+          <input 
+            type="password" 
+            className="form-input"
+            value={passwords.current} 
+            onChange={e => setPasswords({ ...passwords, current: e.target.value })} 
+          />
         </div>
-        <div className="settings-form-row">
-          <label>New Password</label>
-          <input type="password" value={passwords.new} onChange={e => setPasswords({ ...passwords, new: e.target.value })} />
+        <div className="form-group">
+          <label className="form-label">New Password</label>
+          <input 
+            type="password" 
+            className="form-input"
+            value={passwords.new} 
+            onChange={e => {
+              setPasswords({ ...passwords, new: e.target.value });
+              setPasswordStrengthSecurity(checkPasswordStrength(e.target.value));
+            }} 
+          />
+          {passwords.new && (
+            <div className="password-requirements">
+              <div className={`password-strength ${passwordStrengthSecurity.strength?.toLowerCase()}`}>
+                Password Strength: {passwordStrengthSecurity.strength || "Enter password"}
+              </div>
+              <div className="validation-checks">
+                <div className={`validation-check ${passwordStrengthSecurity.validations?.length ? 'passed' : 'failed'}`}>
+                  {passwordStrengthSecurity.validations?.length ? '✅' : '❌'} At least 8 characters
+                </div>
+                <div className={`validation-check ${passwordStrengthSecurity.validations?.uppercase ? 'passed' : 'failed'}`}>
+                  {passwordStrengthSecurity.validations?.uppercase ? '✅' : '❌'} One uppercase letter (A-Z)
+                </div>
+                <div className={`validation-check ${passwordStrengthSecurity.validations?.lowercase ? 'passed' : 'failed'}`}>
+                  {passwordStrengthSecurity.validations?.lowercase ? '✅' : '❌'} One lowercase letter (a-z)
+                </div>
+                <div className={`validation-check ${passwordStrengthSecurity.validations?.number ? 'passed' : 'failed'}`}>
+                  {passwordStrengthSecurity.validations?.number ? '✅' : '❌'} One number (0-9)
+                </div>
+                <div className={`validation-check ${passwordStrengthSecurity.validations?.special ? 'passed' : 'failed'}`}>
+                  {passwordStrengthSecurity.validations?.special ? '✅' : '❌'} One special character (!@#$%^&*)
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="settings-form-row">
-          <label>Confirm New Password</label>
-          <input type="password" value={passwords.confirm} onChange={e => setPasswords({ ...passwords, confirm: e.target.value })} />
+        <div className="form-group">
+          <label className="form-label">Confirm New Password</label>
+          <input 
+            type="password" 
+            className="form-input"
+            value={passwords.confirm} 
+            onChange={e => setPasswords({ ...passwords, confirm: e.target.value })} 
+          />
         </div>
-        <div className="settings-form-actions">
-          <button type="button" className="settings-save-btn" onClick={async () => {
-            if (!passwords.current || !passwords.new || !passwords.confirm) {
-              alert('Please fill in all password fields.');
-              return;
-            }
-            if (passwords.new !== passwords.confirm) {
-              alert('New passwords do not match.');
-              return;
-            }
-            setSavingPassword(true);
-            const token = localStorage.getItem('token');
-            try {
-              const response = await fetch('http://localhost:5000/api/auth/update-profile', {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                  currentPassword: passwords.current,
-                  newPassword: passwords.new
-                })
-              });
-              const data = await response.json();
-              if (response.ok) {
-                alert('Password updated!');
-                setPasswords({ current: '', new: '', confirm: '' });
-              } else {
-                alert(data.error || 'Failed to update password');
+        <div className="form-actions">
+          <button 
+            type="button" 
+            className="btn btn-primary" 
+            onClick={async () => {
+              if (!passwords.current || !passwords.new || !passwords.confirm) {
+                alert('Please fill in all password fields.');
+                return;
               }
-            } catch (err) {
-              alert('Error updating password: ' + err.message);
-            } finally {
-              setSavingPassword(false);
-            }
-          }} disabled={savingPassword}>
+              if (passwords.new !== passwords.confirm) {
+                alert('New passwords do not match.');
+                return;
+              }
+              // Check if new password is strong enough
+              const passwordCheck = checkPasswordStrength(passwords.new);
+              if (passwordCheck.strength !== "Strong") {
+                alert("Please create a strong password that meets all requirements.");
+                return;
+              }
+              setSavingPassword(true);
+              const token = localStorage.getItem('token');
+              try {
+                const response = await fetch('http://localhost:5000/api/auth/update-profile', {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify({
+                    currentPassword: passwords.current,
+                    newPassword: passwords.new
+                  })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                  alert('Password updated!');
+                  setPasswords({ current: '', new: '', confirm: '' });
+                } else {
+                  alert(data.error || 'Failed to update password');
+                }
+              } catch (err) {
+                alert('Error updating password: ' + err.message);
+              } finally {
+                setSavingPassword(false);
+              }
+            }} 
+            disabled={savingPassword}
+          >
             {savingPassword ? 'Saving...' : 'Change Password'}
           </button>
         </div>
@@ -274,42 +460,102 @@ export default function SettingsDialog({ open, openSection, onClose, setUserInfo
   } else if (section === 'preferences') {
     sectionContent = (
       <form className="settings-form">
-        <div className="settings-form-row">
-          <label>
-            <input type="checkbox" checked={preferences.newsletter} onChange={e => setPreferences({ ...preferences, newsletter: e.target.checked })} />
-            Subscribe to Newsletter
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input 
+              type="checkbox" 
+              className="checkbox-input"
+              checked={preferences.newsletter} 
+              onChange={e => setPreferences({ ...preferences, newsletter: e.target.checked })} 
+            />
+            <span className="checkbox-text">Subscribe to Newsletter</span>
           </label>
         </div>
-        <div className="settings-form-row">
-          <label>
-            <input type="checkbox" checked={preferences.darkMode} onChange={e => setPreferences({ ...preferences, darkMode: e.target.checked })} />
-            Enable Dark Mode
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input 
+              type="checkbox" 
+              className="checkbox-input"
+              checked={preferences.darkMode} 
+              onChange={e => setPreferences({ ...preferences, darkMode: e.target.checked })} 
+            />
+            <span className="checkbox-text">Enable Dark Mode</span>
           </label>
         </div>
-        <div className="settings-form-actions">
-          <button type="button" className="settings-save-btn">Save Preferences</button>
+        <div className="form-actions">
+          <button type="button" className="btn btn-primary">Save Preferences</button>
         </div>
       </form>
     );
   } else if (section === 'privacy') {
     sectionContent = (
       <form className="settings-form">
-        <div className="settings-form-row">
-          <label>
-            <input type="checkbox" checked={privacy.profileVisible} onChange={e => setPrivacy({ ...privacy, profileVisible: e.target.checked })} />
-            Profile Visible to Others
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input 
+              type="checkbox" 
+              className="checkbox-input"
+              checked={privacy.profileVisible} 
+              onChange={e => setPrivacy({ ...privacy, profileVisible: e.target.checked })} 
+            />
+            <span className="checkbox-text">Profile Visible to Others</span>
           </label>
         </div>
-        <div className="settings-form-row">
-          <label>
-            <input type="checkbox" checked={privacy.dataSharing} onChange={e => setPrivacy({ ...privacy, dataSharing: e.target.checked })} />
-            Allow Data Sharing
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input 
+              type="checkbox" 
+              className="checkbox-input"
+              checked={privacy.dataSharing} 
+              onChange={e => setPrivacy({ ...privacy, dataSharing: e.target.checked })} 
+            />
+            <span className="checkbox-text">Allow Data Sharing</span>
           </label>
         </div>
-        <div className="settings-form-actions">
-          <button type="button" className="settings-save-btn">Save Privacy Settings</button>
+        <div className="form-actions">
+          <button type="button" className="btn btn-primary">Save Privacy Settings</button>
         </div>
       </form>
+    );
+  } else if (section === 'altars') {
+    sectionContent = (
+      <div className="altars-section">
+        <div className="altars-header">
+          <h3>My Saved Altars</h3>
+          <p>View and manage all your saved altar designs</p>
+        </div>
+        <div className="altars-content">
+          <div className="altars-info">
+            <div className="altars-icon">🕯️</div>
+            <div className="altars-text">
+              <h4>Access Your Altars</h4>
+              <p>Browse through all your saved altar designs, edit them, or create new ones.</p>
+            </div>
+          </div>
+          <div className="altars-actions">
+            <button 
+              type="button" 
+              className="btn btn-secondary"
+              onClick={() => {
+                onClose();
+                navigate('/myaltars');
+              }}
+            >
+              View My Altars
+            </button>
+            <button 
+              type="button" 
+              className="btn btn-primary"
+              onClick={() => {
+                onClose();
+                navigate('/wall');
+              }}
+            >
+              Create New Altar
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -351,38 +597,70 @@ export default function SettingsDialog({ open, openSection, onClose, setUserInfo
           }
         }}
       />
+      <PasswordModal
+        open={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        onSubmit={async (password, setError, setLoading) => {
+          setLoading(true);
+          setError('');
+          const token = localStorage.getItem('token');
+          try {
+            const response = await fetch('http://localhost:5000/api/auth/edit-username', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                username: pendingUsername,
+                currentPassword: password
+              })
+            });
+            const data = await response.json();
+            if (response.ok) {
+              localStorage.setItem('userInfo', JSON.stringify(data.user));
+              if (setUserInfo) setUserInfo(data.user);
+              alert('Username updated!');
+              setProfile(p => ({ ...p, username: pendingUsername }));
+              setShowPasswordModal(false);
+            } else {
+              setError(data.error || 'Failed to update username');
+            }
+          } catch (err) {
+            setError('Error updating username: ' + err.message);
+          } finally {
+            setLoading(false);
+            setSavingProfile(false);
+          }
+        }}
+      />
       <div className="settings-dialog-backdrop">
-        <div className="settings-dialog-modal modern-modal" style={{ display: 'flex', minWidth: 520, minHeight: 340 }}>
+        <div className="settings-dialog-modal">
           {/* Sidebar */}
-          <nav className="settings-sidebar" style={{ minWidth: 150, borderRight: '1px solid #eee', padding: '24px 0', background: '#fafbfc', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+          <nav className="settings-sidebar">
             {SETTINGS_SECTIONS.map(s => (
               <button
                 key={s.key}
-                className={section === s.key ? 'settings-sidebar-item active' : 'settings-sidebar-item'}
-                style={{
-                  background: section === s.key ? '#e3e7fa' : 'none',
-                  border: 'none',
-                  textAlign: 'left',
-                  padding: '12px 24px',
-                  fontWeight: section === s.key ? 600 : 400,
-                  color: section === s.key ? '#3949ab' : '#222',
-                  cursor: 'pointer',
-                  outline: 'none',
-                  fontSize: 16,
-                  borderLeft: section === s.key ? '4px solid #3949ab' : '4px solid transparent',
-                  transition: 'background 0.18s, border-color 0.18s',
-                }}
+                className={`settings-sidebar-item ${section === s.key ? 'active' : ''}`}
                 onClick={() => setSection(s.key)}
               >
-                <span style={{ marginRight: 10 }}>{s.icon}</span> {s.label}
+                <span className="sidebar-icon">{s.icon}</span>
+                <span className="sidebar-label">{s.label}</span>
               </button>
             ))}
           </nav>
+          
           {/* Main content */}
-          <div style={{ flex: 1, padding: '32px 32px 24px 32px', minWidth: 320, position: 'relative' }}>
-            <button className="settings-dialog-close" onClick={onClose} style={{ position: 'absolute', top: 12, right: 12, fontSize: 28, background: 'none', border: 'none', cursor: 'pointer', color: '#888' }}>&times;</button>
-            <h3 className="settings-section-title" style={{textTransform:'capitalize', marginBottom: 24}}>{SETTINGS_SECTIONS.find(s => s.key === section)?.label} Settings</h3>
-            {sectionContent}
+          <div className="settings-main-content">
+            <button className="settings-dialog-close" onClick={onClose}>
+              <span>&times;</span>
+            </button>
+            <div className="settings-content">
+              <h3 className="settings-section-title">
+                {SETTINGS_SECTIONS.find(s => s.key === section)?.label} Settings
+              </h3>
+              {sectionContent}
+            </div>
           </div>
         </div>
       </div>

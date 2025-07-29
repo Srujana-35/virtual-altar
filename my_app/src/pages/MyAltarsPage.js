@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import TopRightMenu from '../components/TopRightMenu';
 import { Link, useNavigate } from 'react-router-dom';
 import WallPreview from '../components/WallPreview';
 import ShareDialog from '../components/ShareDialog';
@@ -141,7 +140,6 @@ export default function MyAltarsPage() {
           <span role="img" aria-label="profile">👤</span>
         )}
       </button>
-      <TopRightMenu />
       <main className="profile-main">
         <div className="profile-content">
           <h1>My Altars</h1>

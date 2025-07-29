@@ -27,6 +27,23 @@ function PasswordDialog({ open, onClose, onConfirm, loading, error }) {
   );
 }
 
+// Password strength checker function (same as signup)
+function checkPasswordStrength(pw) {
+  const validations = {
+    length: pw.length >= 8,
+    uppercase: /[A-Z]/.test(pw),
+    lowercase: /[a-z]/.test(pw),
+    number: /[0-9]/.test(pw),
+    special: /[^A-Za-z0-9]/.test(pw)
+  };
+  const passedValidations = Object.values(validations).filter(Boolean).length;
+  if (pw.length === 0) return { strength: "", validations, passedValidations };
+  if (passedValidations <= 2) return { strength: "Weak", validations, passedValidations };
+  if (passedValidations === 3 || passedValidations === 4) return { strength: "Medium", validations, passedValidations };
+  if (passedValidations === 5) return { strength: "Strong", validations, passedValidations };
+  return { strength: "Weak", validations, passedValidations };
+}
+
 function AddUserDialog({ open, onClose, onUserAdded }) {
   const [form, setForm] = useState({ username: '', email: '', password: '', role: 'user', otp: '' });
   const [step, setStep] = useState(1); // 1: enter info, 2: enter OTP
@@ -34,8 +51,12 @@ function AddUserDialog({ open, onClose, onUserAdded }) {
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState('');
   // Add timer state for OTP expiration
-  const [timer, setTimer] = useState(120); // 2 minutes
+  const [passwordStrength, setPasswordStrength] = useState(checkPasswordStrength(''));
+  // OTP timer state (set to 3 minutes)
+  const [timer, setTimer] = useState(180); // 3 minutes
   const timerRef = useRef();
+  // Add resend OTP logic for AddUserDialog
+  const [canResend, setCanResend] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -44,7 +65,8 @@ function AddUserDialog({ open, onClose, onUserAdded }) {
       setSendingOtp(false);
       setVerifying(false);
       setError('');
-      setTimer(120);
+      setTimer(180);
+      setCanResend(false);
       clearInterval(timerRef.current);
     }
   }, [open]);
@@ -52,12 +74,14 @@ function AddUserDialog({ open, onClose, onUserAdded }) {
   // Start timer when step changes to 2 (OTP step)
   useEffect(() => {
     if (step === 2) {
-      setTimer(120);
+      setTimer(180);
+      setCanResend(false);
       clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         setTimer(t => {
           if (t <= 1) {
             clearInterval(timerRef.current);
+            setCanResend(true);
             return 0;
           }
           return t - 1;
@@ -77,6 +101,11 @@ function AddUserDialog({ open, onClose, onUserAdded }) {
   const handleSendOtp = async () => {
     setSendingOtp(true);
     setError('');
+    if (checkPasswordStrength(form.password).strength !== "Strong") {
+      setError("Please create a strong password that meets all requirements.");
+      setSendingOtp(false);
+      return;
+    }
     try {
       const res = await fetch('http://localhost:5000/api/auth/request-otp', {
         method: 'POST',
@@ -118,6 +147,36 @@ function AddUserDialog({ open, onClose, onUserAdded }) {
     }
   };
 
+  const handleResendOtp = async () => {
+    setSendingOtp(true);
+    setError("");
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/request-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to resend OTP');
+      setTimer(180);
+      setCanResend(false);
+      timerRef.current = setInterval(() => {
+        setTimer(t => {
+          if (t <= 1) {
+            clearInterval(timerRef.current);
+            setCanResend(true);
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      setError('Failed to resend OTP');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
   if (!open) return null;
   return (
     <div className="add-user-modal-backdrop">
@@ -130,7 +189,7 @@ function AddUserDialog({ open, onClose, onUserAdded }) {
             value={form.username}
             onChange={handleChange}
             placeholder="Username"
-            className="add-user-modal-input"
+            className="form-input"
             disabled={step === 2}
           />
           <input
@@ -139,18 +198,37 @@ function AddUserDialog({ open, onClose, onUserAdded }) {
             value={form.email}
             onChange={handleChange}
             placeholder="Email"
-            className="add-user-modal-input"
+            className="form-input"
             disabled={step === 2}
           />
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Password"
-            className="add-user-modal-input"
-            disabled={step === 2}
-          />
+          <div className="form-group">
+            
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              placeholder="Password"
+              onChange={e => {
+                handleChange(e);
+                setPasswordStrength(checkPasswordStrength(e.target.value));
+              }}
+              required
+              className="form-input"
+              disabled={step === 2}
+            />
+            {form.password && (
+              <div className="password-requirements">
+                <div className={`password-strength ${passwordStrength.strength?.toLowerCase()}`}>Password Strength: {passwordStrength.strength || "Enter password"}</div>
+                <div className="validation-checks">
+                  <div className={`validation-check ${passwordStrength.validations?.length ? 'passed' : 'failed'}`}>{passwordStrength.validations?.length ? '✅' : '❌'} At least 8 characters</div>
+                  <div className={`validation-check ${passwordStrength.validations?.uppercase ? 'passed' : 'failed'}`}>{passwordStrength.validations?.uppercase ? '✅' : '❌'} One uppercase letter (A-Z)</div>
+                  <div className={`validation-check ${passwordStrength.validations?.lowercase ? 'passed' : 'failed'}`}>{passwordStrength.validations?.lowercase ? '✅' : '❌'} One lowercase letter (a-z)</div>
+                  <div className={`validation-check ${passwordStrength.validations?.number ? 'passed' : 'failed'}`}>{passwordStrength.validations?.number ? '✅' : '❌'} One number (0-9)</div>
+                  <div className={`validation-check ${passwordStrength.validations?.special ? 'passed' : 'failed'}`}>{passwordStrength.validations?.special ? '✅' : '❌'} One special character (!@#$%^&*)</div>
+                </div>
+              </div>
+            )}
+          </div>
           <select
             name="role"
             value={form.role}
@@ -180,11 +258,23 @@ function AddUserDialog({ open, onClose, onUserAdded }) {
                 placeholder="Enter OTP"
                 className="add-user-modal-input"
                 disabled={timer === 0}
+                required
               />
               <div className={`otp-modal-timer${timer === 0 ? ' expired' : ''}`}
                    style={{ marginBottom: 8 }}>
                 {timer > 0 ? `OTP expires in ${Math.floor(timer/60)}:${(timer%60).toString().padStart(2, '0')}` : 'OTP expired'}
               </div>
+              {canResend && (
+                <button
+                  type="button"
+                  className="add-user-modal-btn otp"
+                  onClick={handleResendOtp}
+                  disabled={sendingOtp}
+                  style={{ marginBottom: 8 }}
+                >
+                  {sendingOtp ? 'Resending...' : 'Resend OTP'}
+                </button>
+              )}
               <button
                 className="add-user-modal-btn"
                 onClick={handleCreateUser}
@@ -208,18 +298,21 @@ function OtpModal({ open, email, loading, sendError, onRetry, onClose, onVerifie
   const [otp, setOtp] = useState('');
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState('');
-  const [timer, setTimer] = useState(120); // 2 minutes
+  const [timer, setTimer] = useState(180); // 3 minutes
+  const [canResend, setCanResend] = useState(false);
   const timerRef = useRef();
 
   useEffect(() => {
     if (open) {
       setOtp('');
       setError('');
-      setTimer(120);
+      setTimer(180);
+      setCanResend(false);
       timerRef.current = setInterval(() => {
         setTimer(t => {
           if (t <= 1) {
             clearInterval(timerRef.current);
+            setCanResend(true);
             return 0;
           }
           return t - 1;
@@ -243,6 +336,39 @@ function OtpModal({ open, email, loading, sendError, onRetry, onClose, onVerifie
       onVerified();
     } catch (err) {
       setError(err.message || 'Failed to verify OTP');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setVerifying(true);
+    setError('');
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/request-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email,
+          context: 'edit'
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to resend OTP');
+      setTimer(180);
+      setCanResend(false);
+      timerRef.current = setInterval(() => {
+        setTimer(t => {
+          if (t <= 1) {
+            clearInterval(timerRef.current);
+            setCanResend(true);
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
+    } catch (err) {
+      setError(err.message || 'Failed to resend OTP');
     } finally {
       setVerifying(false);
     }
@@ -274,9 +400,22 @@ function OtpModal({ open, email, loading, sendError, onRetry, onClose, onVerifie
                 className="add-user-modal-input"
                 maxLength={6}
               />
-              <div className={`otp-modal-timer${timer === 0 ? ' expired' : ''}`}>
-                {timer > 0 ? `OTP expires in ${Math.floor(timer/60)}:${(timer%60).toString().padStart(2, '0')}` : 'OTP expired'}
+              <div className={`otp-modal-timer${timer === 0 ? ' expired' : ''}`} style={{ marginBottom: 8 }}>
+                {!canResend
+                  ? `Expires in: ${String(Math.floor(timer / 60)).padStart(2, '0')}:${String(timer % 60).padStart(2, '0')}`
+                  : 'OTP expired. You can request a new one.'}
               </div>
+              {canResend && (
+                <button
+                  type="button"
+                  className="add-user-modal-btn otp"
+                  onClick={handleResendOtp}
+                  disabled={verifying}
+                  style={{ marginBottom: 8 }}
+                >
+                  {verifying ? 'Resending...' : 'Resend OTP'}
+                </button>
+              )}
               {error && <div className="add-user-modal-error">{error}</div>}
             </>
           )}
@@ -374,7 +513,10 @@ export default function UserManagement() {
         const res = await fetch('http://localhost:5000/api/auth/request-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: editForm.email })
+          body: JSON.stringify({ 
+            email: editForm.email,
+            context: 'edit'
+          })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
