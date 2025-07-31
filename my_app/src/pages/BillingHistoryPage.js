@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
+import config from '../config/config';
 
 export default function BillingHistoryPage() {
   const [history, setHistory] = useState([]);
@@ -11,7 +12,7 @@ export default function BillingHistoryPage() {
       setError('');
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/premium/history', {
+        const res = await fetch(`${config.apiBaseUrl}/premium/history`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();

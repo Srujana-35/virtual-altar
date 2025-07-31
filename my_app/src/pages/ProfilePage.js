@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react'
+import config from '../config/config';
 import SettingsDialog from './SettingsPage';
 import './profilepage.css';
 import './pages.css';
@@ -43,11 +44,11 @@ export default function ProfilePage() {
       const parsed = JSON.parse(storedUserInfo);
       setUserInfo(parsed);
       if (parsed.profile_photo) {
-        setProfileImage(`http://localhost:5000/uploads/${parsed.profile_photo}`);
+        setProfileImage(`${config.apiUrl}/uploads/${parsed.profile_photo}`);
       }
     }
     // Fetch premium status
-    fetch('http://localhost:5000/api/premium/status', {
+    fetch(`${config.apiBaseUrl}/premium/status`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -87,7 +88,7 @@ export default function ProfilePage() {
     if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) return;
     try {
       const token = localStorage.getItem('token');
-      await fetch('http://localhost:5000/api/auth/delete-account', {
+      await fetch(`${config.apiBaseUrl}/auth/delete-account`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -108,7 +109,7 @@ export default function ProfilePage() {
       const token = localStorage.getItem('token');
       const formData = new FormData();
       formData.append('photo', file);
-      const res = await fetch('http://localhost:5000/api/auth/upload-profile-photo', {
+      const res = await fetch(`${config.apiBaseUrl}/auth/upload-profile-photo`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -116,7 +117,7 @@ export default function ProfilePage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to upload photo');
       // Update state and localStorage
-      setProfileImage(`http://localhost:5000/uploads/${data.filename}`);
+      setProfileImage(`${config.apiUrl}/uploads/${data.filename}`);
       const newUserInfo = { ...userInfo, profile_photo: data.filename };
       setUserInfo(newUserInfo);
       localStorage.setItem('userInfo', JSON.stringify(newUserInfo));
@@ -132,7 +133,7 @@ export default function ProfilePage() {
     setUploading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/auth/delete-profile-photo', {
+      const res = await fetch(`${config.apiBaseUrl}/auth/delete-profile-photo`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -242,96 +243,95 @@ export default function ProfilePage() {
       {/* Main Content */}
       <main className="profile-main">
         <div className="container">
-          <div className="profile-card">
-            <div className="profile-header">
-              <h1 className="profile-title">My Profile</h1>
-              {isPremium && (
-                <div className="premium-badge">
-                  <FaCrown className="premium-icon" />
-                  <span className="premium-label">Premium Member</span>
+          <div className="profile-content">
+            {/* Profile Title */}
+            <h1 className="profile-title">My Profile</h1>
+            
+            {/* Profile Photo Section */}
+            <div className="profile-photo-section">
+              <div className="profile-photo-container">
+                {profileImage ? (
+                  <img
+                    src={profileImage}
+                    alt="Profile"
+                    className="profile-photo"
+                  />
+                ) : (
+                  <div className="profile-photo-placeholder">
+                    <FaUserEdit size={48} />
+                  </div>
+                )}
+                <label className="profile-photo-upload" title="Upload Photo">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handlePhotoUpload}
+                    disabled={uploading}
+                  />
+                  <FaCamera size={20} />
+                </label>
+              </div>
+              
+              {profileImage && (
+                <button 
+                  className="btn btn-danger btn-sm delete-photo-btn" 
+                  onClick={handleDeletePhoto} 
+                  disabled={uploading} 
+                  title="Delete Photo"
+                >
+                  <FaTrashAlt style={{marginRight: 6}} /> Delete Photo
+                </button>
+              )}
+              
+              {uploading && (
+                <div className="upload-status">
+                  <div className="loading-spinner"></div>
+                  <span>Uploading...</span>
                 </div>
               )}
             </div>
 
-            <div className="profile-content">
-              {/* Profile Photo Section */}
-              <div className="profile-photo-section">
-                <div className="profile-photo-container">
-                  {profileImage ? (
-                    <img
-                      src={profileImage}
-                      alt="Profile"
-                      className="profile-photo"
-                    />
-                  ) : (
-                    <div className="profile-photo-placeholder">
-                      <FaUserEdit size={48} />
-                    </div>
-                  )}
-                  <label className="profile-photo-upload" title="Upload Photo">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      style={{ display: 'none' }}
-                      onChange={handlePhotoUpload}
-                      disabled={uploading}
-                    />
-                    <FaCamera size={20} />
-                  </label>
+            {/* Premium Badge */}
+            {isPremium && (
+              <div className="premium-badge">
+                <FaCrown className="premium-icon" />
+                <span className="premium-label">Premium Member</span>
+              </div>
+            )}
+
+            {/* User Information */}
+            <div className="user-info-section">
+              <div className="info-grid">
+                <div className="info-item">
+                  <label className="info-label">Username</label>
+                  <span className="info-value">{userInfo.username || 'Not set'}</span>
                 </div>
-                
-                {profileImage && (
-                  <button 
-                    className="btn btn-danger btn-sm delete-photo-btn" 
-                    onClick={handleDeletePhoto} 
-                    disabled={uploading} 
-                    title="Delete Photo"
-                  >
-                    <FaTrashAlt style={{marginRight: 6}} /> Delete Photo
-                  </button>
-                )}
-                
-                {uploading && (
-                  <div className="upload-status">
-                    <div className="loading-spinner"></div>
-                    <span>Uploading...</span>
-                  </div>
-                )}
+                <div className="info-item">
+                  <label className="info-label">Email</label>
+                  <span className="info-value">{userInfo.email || 'Not set'}</span>
+                </div>
               </div>
 
-              {/* User Information */}
-              <div className="user-info-section">
-                <div className="info-grid">
-                  <div className="info-item">
-                    <label className="info-label">Username</label>
-                    <span className="info-value">{userInfo.username || 'Not set'}</span>
-                  </div>
-                  <div className="info-item">
-                    <label className="info-label">Email</label>
-                    <span className="info-value">{userInfo.email || 'Not set'}</span>
-                  </div>
-                </div>
-
-                {/* Admin Dashboard Button */}
-                {userInfo.role === 'admin' && (
-                  <button
-                    className="btn btn-primary admin-dashboard-btn"
-                    onClick={() => navigate('/admin')}
-                  >
-                    <FaCog style={{marginRight: 8}} /> Go to Admin Dashboard
-                  </button>
-                )}
-              </div>
-
-              {/* Delete Account Button */}
-              <div className="danger-zone">
-                <button 
-                  className="btn btn-danger delete-account-btn" 
-                  onClick={handleDeleteAccount}
+              {/* Admin Dashboard Button */}
+              {userInfo.role === 'admin' && (
+                <button
+                  className="btn btn-primary admin-dashboard-btn"
+                  onClick={() => navigate('/admin')}
                 >
-                  <FaExclamationTriangle style={{marginRight: 8}} /> Delete Account
+                  <FaCog style={{marginRight: 8}} /> Go to Admin Dashboard
                 </button>
-              </div>
+              )}
+            </div>
+
+            {/* Delete Account Button */}
+            <div className="danger-zone">
+              <button 
+                className="btn btn-danger delete-account-btn" 
+                onClick={handleDeleteAccount}
+              >
+                <FaExclamationTriangle style={{marginRight: 8}} /> Delete Account
+              </button>
             </div>
           </div>
         </div>

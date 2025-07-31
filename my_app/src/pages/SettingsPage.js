@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react'
+import config from '../config/config';
 import { useNavigate } from 'react-router-dom';
 import './pages.css';
 import './settingspage.css';
@@ -44,7 +45,7 @@ function OtpModal({ open, email, onClose, onVerified }) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/verify-otp-edit', {
+      const res = await fetch(`${config.apiBaseUrl}/auth/verify-otp-edit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp })
@@ -63,7 +64,7 @@ function OtpModal({ open, email, onClose, onVerified }) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/request-otp', {
+      const res = await fetch(`${config.apiBaseUrl}/auth/request-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -319,7 +320,7 @@ export default function SettingsDialog({ open, openSection, onClose, setUserInfo
                   setSendingOtp(true);
                   setOtpError('');
                   try {
-                    const res = await fetch('http://localhost:5000/api/auth/request-otp', {
+                    const res = await fetch(`${config.apiBaseUrl}/auth/request-otp`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ 
@@ -426,7 +427,7 @@ export default function SettingsDialog({ open, openSection, onClose, setUserInfo
               setSavingPassword(true);
               const token = localStorage.getItem('token');
               try {
-                const response = await fetch('http://localhost:5000/api/auth/update-profile', {
+                const response = await fetch(`${config.apiBaseUrl}/auth/update-profile`, {
                   method: 'PUT',
                   headers: {
                     'Content-Type': 'application/json',
@@ -570,7 +571,7 @@ export default function SettingsDialog({ open, openSection, onClose, setUserInfo
           setSavingProfile(true);
           const token = localStorage.getItem('token');
           try {
-            const response = await fetch('http://localhost:5000/api/auth/update-profile', {
+            const response = await fetch(`${config.apiBaseUrl}/auth/update-profile`, {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json',
@@ -605,7 +606,7 @@ export default function SettingsDialog({ open, openSection, onClose, setUserInfo
           setError('');
           const token = localStorage.getItem('token');
           try {
-            const response = await fetch('http://localhost:5000/api/auth/edit-username', {
+            const response = await fetch(`${config.apiBaseUrl}/auth/edit-username`, {
               method: 'PUT',
               headers: {
                 'Content-Type': 'application/json',

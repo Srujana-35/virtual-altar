@@ -1,10 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"
+import config from '../config/config';
 import { Link, useNavigate } from "react-router-dom";
 import './homepage.css';
+import bg2img from '../assets/bg2img.jpg';
+
 
 function Homepage() {
   const [profilePhoto, setProfilePhoto] = useState(null);
   const navigate = useNavigate();
+
+
 
   useEffect(() => {
     // Check login state and profile photo on mount and when storage changes
@@ -15,7 +20,7 @@ function Homepage() {
         if (userInfo) {
           const parsed = JSON.parse(userInfo);
           if (parsed.profile_photo) {
-            setProfilePhoto(`http://localhost:5000/uploads/${parsed.profile_photo}`);
+            setProfilePhoto(`${config.apiUrl}/uploads/${parsed.profile_photo}`);
             return;
           }
         }
@@ -83,53 +88,52 @@ function Homepage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="hero">
-        <div className="container">
-          <div className="hero-content">
-            <div className="hero-text">
-              <h1 className="hero-title">
-                Honor Your Loved Ones with a
-                <span className="highlight"> Beautiful Virtual Altar</span>
-              </h1>
-              <p className="hero-description">
-                Create a meaningful digital memorial to celebrate and remember those who have passed. 
-                Upload photos, add personal touches, and share memories with family and friends.
-              </p>
-              <div className="hero-actions">
-                <button
-                  className="btn btn-primary btn-lg"
-                  onClick={() => {
-                    const token = localStorage.getItem('token');
-                    if (token) {
-                      navigate('/wall');
-                    } else {
-                      navigate('/signup');
-                    }
-                  }}
-                >
-                  Create Your Altar
-                </button>
-              </div>
-            </div>
-            <div className="hero-visual">
-              <div className="altar-preview">
-                <div className="altar-frame">
-                  <div className="altar-photos">
-                    <div className="photo-item photo-1"></div>
-                    <div className="photo-item photo-2"></div>
-                    <div className="photo-item photo-3"></div>
-                  </div>
-                  <div className="altar-decorations">
-                    <div className="candle"></div>
-                    <div className="flower"></div>
-                  </div>
+      {/* Main Content with Background Image */}
+      <div 
+        className="main-content-background"
+        style={{ backgroundImage: `url(${bg2img})` }}
+      >
+                {/* Combined Hero and Background Section */}
+        <section className="background-section">
+          <div className="container">
+            <div className="background-content">
+              <div className="background-text">
+                
+                <h1 className="hero-title">
+                  Honor Your Loved Ones with a
+                  <span className="highlight"> Beautiful Virtual Altar</span>
+                </h1>
+              
+                <p className="hero-description">
+                  Create a meaningful digital memorial to celebrate and remember those who have passed. 
+                  Upload photos, add personal touches, and share memories with family and friends.
+                </p>
+                <div className="hero-actions">
+                  <button
+                    className="btn btn-primary btn-lg"
+                    onClick={() => {
+                      const token = localStorage.getItem('token');
+                      if (token) {
+                        navigate('/wall');
+                      } else {
+                        navigate('/signup');
+                      }
+                    }}
+                  >
+                    Create Your Altar
+                  </button>
                 </div>
+              </div>
+              <div className="background-visual">
+                <img 
+                  src={bg2img} 
+                  alt="Memorial Background" 
+                  className="background-image"
+                />
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* Features Section */}
       <section className="features">
@@ -168,11 +172,6 @@ function Homepage() {
 
       {/* Testimonials Section */}
       <section className="testimonials">
-        <div className="wave-divider wave-top">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-            <path fill="#f9fafb" fillOpacity="1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-          </svg>
-        </div>
         <div className="container">
           <div className="testimonials-header">
             <h2 className="testimonials-title">What Our Users Say</h2>
@@ -213,11 +212,6 @@ function Homepage() {
             </div>
           </div>
         </div>
-        <div className="wave-divider wave-bottom">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320">
-            <path fill="#ffffff" fillOpacity="1" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-          </svg>
-        </div>
       </section>
 
       {/* CTA Section */}
@@ -239,6 +233,47 @@ function Homepage() {
           </div>
         </div>
       </section>
+
+      {/* Contact Form Section */}
+      <section className="contact-section">
+        <div className="container">
+          <div className="contact-content">
+            <div className="contact-text">
+              <h2 className="contact-title">GET IN TOUCH</h2>
+              <p className="contact-subtitle">Let us know how we can improve the experience for you!</p>
+            </div>
+            <div className="contact-form-container">
+              <form className="contact-form">
+                <div className="form-group">
+                  <input 
+                    type="text" 
+                    placeholder="Your name here" 
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <input 
+                    type="email" 
+                    placeholder="Your email here" 
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <textarea 
+                    placeholder="Type here..." 
+                    className="form-textarea"
+                    rows="4"
+                  ></textarea>
+                </div>
+                <button type="submit" className="btn btn-primary btn-lg form-submit">
+                  Send us a message
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+      </div>
 
       {/* Footer */}
       <footer className="footer">
@@ -270,6 +305,23 @@ function Homepage() {
                 <Link to="/privacy">Privacy Policy</Link>
                 <Link to="/terms">Terms of Service</Link>
               </nav>
+            </div>
+            <div className="footer-section">
+              <h4 className="footer-title">Follow Us</h4>
+              <div className="social-media">
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="social-link">
+                  <span className="social-icon">📘</span>
+                  <span className="social-text">Facebook</span>
+                </a>
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-link">
+                  <span className="social-icon">📷</span>
+                  <span className="social-text">Instagram</span>
+                </a>
+                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="social-link">
+                  <span className="social-icon">🐦</span>
+                  <span className="social-text">Twitter</span>
+                </a>
+              </div>
             </div>
           </div>
           <div className="footer-bottom">

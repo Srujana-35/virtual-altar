@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
+import config from '../config/config';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './pages.css';
 
@@ -55,7 +56,7 @@ const ResetPasswordPage = () => {
     }
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/auth/reset-password', {
+      const response = await fetch(`${config.apiBaseUrl}/auth/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, password })

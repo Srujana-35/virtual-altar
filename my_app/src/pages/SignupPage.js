@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
+import config from '../config/config';
+
 import './pages.css';
 import { Link, useNavigate } from "react-router-dom";
 
@@ -30,7 +32,7 @@ function Signup() {
                 if (userInfo) {
                     const parsed = JSON.parse(userInfo);
                     if (parsed.profile_photo) {
-                        setProfilePhoto(`http://localhost:5000/uploads/${parsed.profile_photo}`);
+                        setProfilePhoto(`${config.apiUrl}/uploads/${parsed.profile_photo}`);
                         return;
                     }
                 }
@@ -82,7 +84,7 @@ function Signup() {
         setInfoMsg("");
         try {
             // Step 1: Request OTP
-            const response = await fetch('http://localhost:5000/api/auth/request-otp', {
+            const response = await fetch(`${config.apiBaseUrl}/auth/request-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -109,7 +111,7 @@ function Signup() {
         setOtpError("");
         setInfoMsg("");
         try {
-            const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
+            const response = await fetch(`${config.apiBaseUrl}/auth/verify-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -166,7 +168,7 @@ function Signup() {
       setOtpError("");
       setInfoMsg("");
       try {
-        const response = await fetch('http://localhost:5000/api/auth/request-otp', {
+        const response = await fetch(`${config.apiBaseUrl}/auth/request-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: mail })

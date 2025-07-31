@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 // JWT Secret (should match auth.js)
-const JWT_SECRET = 'your-secret-key';
+const config = require('../config/config');
 
 // Middleware to verify token and admin role
 const verifyToken = (req, res, next) => {
@@ -14,7 +14,7 @@ const verifyToken = (req, res, next) => {
     return res.status(401).json({ error: 'Access token required' });
   }
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwt.secret);
     req.user = decoded;
     next();
   } catch (error) {

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
+import config from '../config/config';
 import { Link, useNavigate } from 'react-router-dom';
 import WallPreview from '../components/WallPreview';
 import ShareDialog from '../components/ShareDialog';
@@ -32,11 +33,11 @@ export default function MyAltarsPage() {
     if (userInfo) {
       const parsed = JSON.parse(userInfo);
       if (parsed.profile_photo) {
-        setProfilePhoto(`http://localhost:5000/uploads/${parsed.profile_photo}`);
+        setProfilePhoto(`${config.apiUrl}/uploads/${parsed.profile_photo}`);
       }
     }
     // Fetch premium status
-    fetch('http://localhost:5000/api/premium/status', {
+    fetch(`${config.apiBaseUrl}/premium/status`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -44,7 +45,7 @@ export default function MyAltarsPage() {
     // Fetch all saved walls for the user
     const fetchWalls = async () => {
       try {
-        const listRes = await fetch('http://localhost:5000/api/wall/list', {
+        const listRes = await fetch(`${config.apiBaseUrl}/wall/list`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const listData = await listRes.json();
@@ -55,7 +56,7 @@ export default function MyAltarsPage() {
         }
         // Fetch each wall's data
         const wallPromises = listData.walls.map(async (wall) => {
-          const wallRes = await fetch(`http://localhost:5000/api/wall/load/${wall.id}`, {
+          const wallRes = await fetch(`${config.apiBaseUrl}/wall/load/${wall.id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           const wallData = await wallRes.json();
@@ -88,7 +89,7 @@ export default function MyAltarsPage() {
     if (!token) return;
     if (!window.confirm('Are you sure you want to delete this wall?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/wall/delete/${wallId}`, {
+      const res = await fetch(`${config.apiBaseUrl}/wall/delete/${wallId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -163,7 +164,7 @@ export default function MyAltarsPage() {
                   const makeImageUrl = (src) => {
                     if (!src) return null;
                     if (src.startsWith('blob:') || src.startsWith('/') || src.startsWith('data:')) return src;
-                    return `http://localhost:5000/uploads/${src}`;
+                    return `${config.apiUrl}/uploads/${src}`;
                   };
                   let preview = null;
                   if (wall.wallData.wallpaper) preview = makeImageUrl(wall.wallData.wallpaper);

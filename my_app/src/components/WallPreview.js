@@ -1,11 +1,12 @@
 import React from "react";
 import "./Wall.css";
+import config from '../config/config';
 
 // Helper to resolve image URLs (local or server)
 const makeImageUrl = (src) => {
   if (!src) return null;
   if (src.startsWith("blob:") || src.startsWith("/") || src.startsWith("data:")) return src;
-  return `http://localhost:5000/uploads/${src}`;
+  return `${config.apiUrl}/uploads/${src}`;
 };
 
 export default function WallPreview({ wallData, style, className }) {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from "react-router-dom";
 import './pages.css';
+import config from '../config/config';
 
 function Login() {
     const [mail, setmail] = useState("");
@@ -19,7 +20,7 @@ function Login() {
                 if (userInfo) {
                     const parsed = JSON.parse(userInfo);
                     if (parsed.profile_photo) {
-                        setProfilePhoto(`http://localhost:5000/uploads/${parsed.profile_photo}`);
+                        setProfilePhoto(`${config.apiUrl}/uploads/${parsed.profile_photo}`);
                         return;
                     }
                 }
@@ -39,7 +40,7 @@ function Login() {
         setError("");
         
         try {
-            const response = await fetch('http://localhost:5000/api/auth/login', {
+            const response = await fetch(`${config.apiBaseUrl}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

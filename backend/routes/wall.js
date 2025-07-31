@@ -9,7 +9,7 @@ const crypto = require('crypto');
 const router = express.Router();
 
 // JWT Secret (should match auth.js)
-const JWT_SECRET = 'your-secret-key';
+const config = require('../config/config');
 
 // Verify Token Middleware
 const verifyToken = (req, res, next) => {
@@ -20,7 +20,7 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwt.secret);
     req.user = decoded;
     next();
   } catch (error) {
@@ -279,8 +279,7 @@ router.post('/share/private', verifyToken, async (req, res) => {
     }
 
     // 4. Return the share link
-    const frontendUrl = 'http://localhost:3000';
-    res.json({ privateLink: `${frontendUrl}/wall/view/${shareToken}` });
+    res.json({ privateLink: `${config.frontendUrl}/wall/view/${shareToken}` });
   } catch (error) {
     console.error('Private share error:', error);
     res.status(500).json({ error: 'Internal server error' });

@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react'
+import config from '../config/config';
+;
 
 function PasswordDialog({ open, onClose, onConfirm, loading, error }) {
   const [password, setPassword] = useState('');
@@ -107,7 +109,7 @@ function AddUserDialog({ open, onClose, onUserAdded }) {
       return;
     }
     try {
-      const res = await fetch('http://localhost:5000/api/auth/request-otp', {
+      const res = await fetch(`${config.apiBaseUrl}/auth/request-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email })
@@ -126,7 +128,7 @@ function AddUserDialog({ open, onClose, onUserAdded }) {
     setVerifying(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/verify-otp', {
+      const res = await fetch(`${config.apiBaseUrl}/auth/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -151,7 +153,7 @@ function AddUserDialog({ open, onClose, onUserAdded }) {
     setSendingOtp(true);
     setError("");
     try {
-      const res = await fetch('http://localhost:5000/api/auth/request-otp', {
+      const res = await fetch(`${config.apiBaseUrl}/auth/request-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: form.email })
@@ -326,7 +328,7 @@ function OtpModal({ open, email, loading, sendError, onRetry, onClose, onVerifie
     setVerifying(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/verify-otp-edit', {
+      const res = await fetch(`${config.apiBaseUrl}/auth/verify-otp-edit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, otp })
@@ -345,7 +347,7 @@ function OtpModal({ open, email, loading, sendError, onRetry, onClose, onVerifie
     setVerifying(true);
     setError('');
     try {
-      const res = await fetch('http://localhost:5000/api/auth/request-otp', {
+      const res = await fetch(`${config.apiBaseUrl}/auth/request-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -464,7 +466,7 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/admin/users', {
+      const res = await fetch(`${config.apiBaseUrl}/admin/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -510,7 +512,7 @@ export default function UserManagement() {
       setEditOtpSendError('');
       // Send OTP in background
       try {
-        const res = await fetch('http://localhost:5000/api/auth/request-otp', {
+        const res = await fetch(`${config.apiBaseUrl}/auth/request-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
@@ -531,7 +533,7 @@ export default function UserManagement() {
     // Save directly if username/role changed or OTP verified
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
+      const res = await fetch(`${config.apiBaseUrl}/admin/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -566,7 +568,7 @@ export default function UserManagement() {
     setPasswordError('');
     try {
       const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      const res = await fetch('http://localhost:5000/api/admin/reauth', {
+      const res = await fetch(`${config.apiBaseUrl}/admin/reauth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: userInfo.email, password })
@@ -597,7 +599,7 @@ export default function UserManagement() {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
+      const res = await fetch(`${config.apiBaseUrl}/admin/users/${userId}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -636,7 +638,7 @@ export default function UserManagement() {
           setEditOtpLoading(true);
           setEditOtpSendError('');
           try {
-            const res = await fetch('http://localhost:5000/api/auth/request-otp', {
+            const res = await fetch(`${config.apiBaseUrl}/auth/request-otp`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: editOtpEmail })

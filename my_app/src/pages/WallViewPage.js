@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
+import config from '../config/config';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import WallPreview from '../components/WallPreview';
 import './pages.css';
@@ -28,7 +29,7 @@ function WallViewPage() {
           return;
         }
         try {
-          const res = await fetch(`http://localhost:5000/api/wall/view/${id}`, {
+          const res = await fetch(`${config.apiBaseUrl}/wall/view/${id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
           if (res.status === 401) {
@@ -53,7 +54,7 @@ function WallViewPage() {
       } else {
         // Public view
         try {
-          const res = await fetch(`http://localhost:5000/api/wall/public/${id}`);
+          const res = await fetch(`${config.apiBaseUrl}/wall/public/${id}`);
           const data = await res.json();
           if (res.ok && data.wall) {
             setWall(data.wall);

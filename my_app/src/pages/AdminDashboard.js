@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
+import config from '../config/config';
+
 import { useNavigate } from 'react-router-dom';
 import './admindashboard.css';
 import UserManagement from './UserManagement';
@@ -23,7 +25,7 @@ import PremiumManagement from './PremiumManagement';
       navigate('/wall');
     }
     if (userInfo && userInfo.profile_photo) {
-      setProfilePhoto(`http://localhost:5000/uploads/${userInfo.profile_photo}`);
+      setProfilePhoto(`${config.apiUrl}/uploads/${userInfo.profile_photo}`);
     }
     
     // Fetch dashboard statistics
@@ -35,7 +37,7 @@ import PremiumManagement from './PremiumManagement';
       const token = localStorage.getItem('token');
       console.log('Fetching dashboard stats with token:', token ? 'Token exists' : 'No token');
       
-      const response = await fetch('http://localhost:5000/api/admin/dashboard-stats', {
+      const response = await fetch(`${config.apiBaseUrl}/admin/dashboard-stats`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -117,59 +119,72 @@ import PremiumManagement from './PremiumManagement';
 
   return (
     <div className="admin-dashboard-flex">
-      <aside className="admin-dashboard-sidebar">
-        <h1 className="admin-dashboard-title">Admin Dashboard</h1>
-        <div className="admin-dashboard-btn-group-vertical">
-          <button
-            className={`admin-dashboard-btn dashboard-btn${activeSection === 'dashboard' ? ' active' : ''}`}
-            onClick={() => setActiveSection('dashboard')}
-          >
-            📊 Dashboard
-          </button>
-          <button
-            className={`admin-dashboard-btn user-btn${activeSection === 'users' ? ' active' : ''}`}
-            onClick={() => setActiveSection('users')}
-          >
-            User Management
-          </button>
-          <button
-            className={`admin-dashboard-btn altar-btn${activeSection === 'altars' ? ' active' : ''}`}
-            onClick={() => setActiveSection('altars')}
-          >
-            Altar Management
-          </button>
-          <button
-            className={`admin-dashboard-btn premium-btn${activeSection === 'premium' ? ' active' : ''}`}
-            onClick={() => setActiveSection('premium')}
-          >
-            Premium Status Management
-          </button>
-          <button
-            className="admin-dashboard-btn feature-btn"
-            onClick={() => navigate('/admin/features')}
-          >
-            🎛️ Feature Management
-          </button>
+      {/* Header */}
+      <header className="admin-header">
+        <div className="container">
+          <div className="header-content">
+            <div className="logo">
+              <span className="logo-text">MiAltar</span>
+              <span className="logo-subtitle">Virtual Memorial</span>
+            </div>
+          </div>
         </div>
-      </aside>
-      <main className="admin-dashboard-main">
         <button
           className="admin-profile-icon-btn"
           title="Go to Profile"
           onClick={() => navigate('/profile')}
-          style={{ position: 'absolute', top: 24, right: 36, background: 'none', border: 'none', cursor: 'pointer', fontSize: 32, padding: 0 }}
         >
           {profilePhoto ? (
-            <img src={profilePhoto} alt="Profile" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '2px solid #1976d2', boxShadow: '0 2px 8px rgba(25, 118, 210, 0.10)' }} />
+            <img src={profilePhoto} alt="Profile" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary-color)', boxShadow: '0 2px 8px rgba(102, 126, 234, 0.2)' }} />
           ) : (
             <span role="img" aria-label="profile">👤</span>
           )}
         </button>
-        {activeSection === 'dashboard' && <DashboardOverview />}
-        {activeSection === 'users' && <UserManagement />}
-        {activeSection === 'altars' && <AltarManagement />}
-        {activeSection === 'premium' && <PremiumManagement />}
-      </main>
+      </header>
+      
+      <div className="admin-dashboard-content">
+        <aside className="admin-dashboard-sidebar">
+          <h1 className="admin-dashboard-title">Admin Dashboard</h1>
+          <div className="admin-dashboard-btn-group-vertical">
+            <button
+              className={`admin-dashboard-btn dashboard-btn${activeSection === 'dashboard' ? ' active' : ''}`}
+              onClick={() => setActiveSection('dashboard')}
+            >
+              📊 Dashboard
+            </button>
+            <button
+              className={`admin-dashboard-btn user-btn${activeSection === 'users' ? ' active' : ''}`}
+              onClick={() => setActiveSection('users')}
+            >
+              User Management
+            </button>
+            <button
+              className={`admin-dashboard-btn altar-btn${activeSection === 'altars' ? ' active' : ''}`}
+              onClick={() => setActiveSection('altars')}
+            >
+              Altar Management
+            </button>
+            <button
+              className={`admin-dashboard-btn premium-btn${activeSection === 'premium' ? ' active' : ''}`}
+              onClick={() => setActiveSection('premium')}
+            >
+              Premium Status Management
+            </button>
+            <button
+              className="admin-dashboard-btn feature-btn"
+              onClick={() => navigate('/admin/features')}
+            >
+              🎛️ Feature Management
+            </button>
+          </div>
+        </aside>
+        <main className="admin-dashboard-main">
+          {activeSection === 'dashboard' && <DashboardOverview />}
+          {activeSection === 'users' && <UserManagement />}
+          {activeSection === 'altars' && <AltarManagement />}
+          {activeSection === 'premium' && <PremiumManagement />}
+        </main>
+      </div>
     </div>
   );
 } 

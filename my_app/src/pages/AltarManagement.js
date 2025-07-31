@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
+import config from '../config/config';
 import WallPreview from '../components/WallPreview';
 
 export default function AltarManagement() {
@@ -16,7 +17,7 @@ export default function AltarManagement() {
       setError(null);
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/admin/users-altars', {
+        const res = await fetch(`${config.apiBaseUrl}/admin/users-altars`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -44,66 +45,74 @@ export default function AltarManagement() {
   if (error) return <div style={{ color: 'red' }}>Error: {error}</div>;
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ background: '#f9f9ff', borderRadius: 12, padding: 24, boxShadow: '0 2px 8px rgba(60,60,120,0.07)' }}>
       <h2>Altar Management</h2>
-      <input
-        type="text"
-        placeholder="Search by username or email..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        style={{ marginBottom: "1rem", padding: "0.5rem", width: "300px" }}
-      />
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead>
-          <tr>
-            <th style={{ border: '1px solid #ccc', padding: 8 }}>Username</th>
-            <th style={{ border: '1px solid #ccc', padding: 8 }}>Email</th>
-            <th style={{ border: '1px solid #ccc', padding: 8 }}>Altars (Previews)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredUsersAltars.map(user => (
-            <tr key={user.user_id}>
-              <td style={{ border: '1px solid #ccc', padding: 8 }}>{user.username}</td>
-              <td style={{ border: '1px solid #ccc', padding: 8 }}>{user.email}</td>
-              <td style={{ border: '1px solid #ccc', padding: 8 }}>
-                {user.altars.length === 0 ? (
-                  <span style={{ color: '#888' }}>No altars</span>
-                ) : (
-                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                    {user.altars.map(altar => {
-                      // Use wallpaper or first image as preview
-                      let previewImg = null;
-                      if (altar.wall_data.wallpaper) previewImg = altar.wall_data.wallpaper;
-                      else if (altar.wall_data.images && altar.wall_data.images.length > 0) previewImg = altar.wall_data.images[0].src;
-                      return (
-                        <button
-                          key={altar.id}
-                          style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
-                          title={altar.name}
-                          onClick={() => { setPreviewWall(altar.wall_data); setPreviewTitle(`${user.username} - ${altar.name}`); }}
-                        >
-                          {previewImg ? (
-                            <img
-                              src={previewImg.startsWith('http') || previewImg.startsWith('/') ? previewImg : `http://localhost:5000/uploads/${previewImg}`}
-                              alt={altar.name}
-                              style={{ width: 80, height: 60, objectFit: 'cover', border: '2px solid #1976d2', borderRadius: 6 }}
-                            />
-                          ) : (
-                            <div style={{ width: 80, height: 60, background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', borderRadius: 6 }}>
-                              No Preview
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </td>
+      <div style={{ marginBottom: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <input
+          type="text"
+          placeholder="Search by username or email..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ padding: 8, borderRadius: 6, border: '1px solid #ccc', width: 220 }}
+        />
+      </div>
+      {loading ? (
+        <div>Loading altars...</div>
+      ) : filteredUsersAltars.length === 0 ? (
+        <div>No altars found.</div>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: 8, overflow: 'hidden' }}>
+          <thead>
+            <tr style={{ background: '#e3e9f3' }}>
+              <th style={{ padding: 10, textAlign: 'left' }}>Username</th>
+              <th style={{ padding: 10, textAlign: 'left' }}>Email</th>
+              <th style={{ padding: 10, textAlign: 'left' }}>Altars (Previews)</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredUsersAltars.map(user => (
+              <tr key={user.user_id} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                <td style={{ padding: 10 }}>{user.username}</td>
+                <td style={{ padding: 10 }}>{user.email}</td>
+                <td style={{ padding: 10 }}>
+                  {user.altars.length === 0 ? (
+                    <span style={{ color: '#888' }}>No altars</span>
+                  ) : (
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                      {user.altars.map(altar => {
+                        // Use wallpaper or first image as preview
+                        let previewImg = null;
+                        if (altar.wall_data.wallpaper) previewImg = altar.wall_data.wallpaper;
+                        else if (altar.wall_data.images && altar.wall_data.images.length > 0) previewImg = altar.wall_data.images[0].src;
+                        return (
+                          <button
+                            key={altar.id}
+                            style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
+                            title={altar.name}
+                            onClick={() => { setPreviewWall(altar.wall_data); setPreviewTitle(`${user.username} - ${altar.name}`); }}
+                          >
+                            {previewImg ? (
+                              <img
+                                src={previewImg.startsWith('http') || previewImg.startsWith('/') ? previewImg : `${config.apiUrl}/uploads/${previewImg}`}
+                                alt={altar.name}
+                                style={{ width: 80, height: 60, objectFit: 'cover', border: '2px solid #1976d2', borderRadius: 6 }}
+                              />
+                            ) : (
+                              <div style={{ width: 80, height: 60, background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888', borderRadius: 6 }}>
+                                No Preview
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
       {/* Modal for previewing altar */}
       {previewWall && (
         <div style={{

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ShareDialog.css';
 import { useFeatures } from '../hooks/useFeatures';
+import config from '../config/config';
 
 export default function ShareDialog({ open, url, onClose, altarId }) {
   const [copied, setCopied] = useState(false);
@@ -22,7 +23,7 @@ export default function ShareDialog({ open, url, onClose, altarId }) {
     const fetchStatus = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('/api/premium/status', {
+        const res = await fetch(`${config.apiBaseUrl}/premium/status`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         // eslint-disable-next-line
@@ -90,7 +91,7 @@ export default function ShareDialog({ open, url, onClose, altarId }) {
       try {
         // Call backend API to save allowedUsers for this altar
         const token = localStorage.getItem('token');
-        const res = await fetch('/api/wall/share/private', {
+        const res = await fetch(`${config.apiBaseUrl}/wall/share/private`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`

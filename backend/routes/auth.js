@@ -6,17 +6,14 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
-require('dotenv').config();
+const config = require('../config/config');
 
 const router = express.Router();
-
-// JWT Secret (in production, use environment variable)
-const JWT_SECRET = 'your-secret-key';
 
 // Configure multer for profile photo uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = 'uploads/';
+    const uploadDir = `${config.upload.path}/`;
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -29,7 +26,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: config.upload.maxFileSize },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -75,8 +72,8 @@ router.post('/signup', async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { userId: result.insertId, username, email },
-      JWT_SECRET,
-      { expiresIn: '2h' }
+      config.jwt.secret,
+      { expiresIn: config.jwt.expiresIn }
     );
     res.status(201).json({
       message: 'User created successfully',
@@ -123,8 +120,8 @@ router.post('/login', async (req, res) => {
     // Generate JWT token (include role)
     const token = jwt.sign(
       { userId: user.id, username: user.username, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '2h' }
+      config.jwt.secret,
+      { expiresIn: config.jwt.expiresIn }
     );
 
     res.json({
@@ -148,7 +145,7 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwt.secret);
     req.user = decoded;
     next();
   } catch (error) {
@@ -205,12 +202,12 @@ router.put('/update-profile', verifyToken, async (req, res) => {
     // Send email notification
     if (users2.length > 0) {
       let transporter = require('nodemailer').createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
+        host: config.email.host,
+        port: config.email.port,
         secure: false,
         auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
+          user: config.email.user,
+          pass: config.email.pass
         }
       });
       await transporter.sendMail({
@@ -335,19 +332,19 @@ router.post('/forgot-password', async (req, res) => {
       // Generate reset token (expires in 1 hour)
       const resetToken = jwt.sign(
         { userId: user.id, email: user.email },
-        JWT_SECRET,
+        config.jwt.secret,
         { expiresIn: '1h' }
       );
       // Create reset link
-      const resetLink = `http://localhost:3000/reset-password?token=${resetToken}`;
+      const resetLink = `${config.frontendUrl}/reset-password?token=${resetToken}`;
       // Send email using nodemailer (Gmail SMTP)
       let transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
+        host: config.email.host,
+        port: config.email.port,
         secure: false,
         auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS
+          user: config.email.user,
+          pass: config.email.pass
         }
       });
       await transporter.sendMail({
@@ -374,7 +371,7 @@ router.post('/reset-password', async (req, res) => {
   }
   try {
     // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwt.secret);
     const userId = decoded.userId;
     // Hash new password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -409,12 +406,12 @@ function generateOTP() {
 // Helper: Send OTP email for signup
 async function sendOtpEmail(email, otp) {
   let transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
+    host: config.email.host,
+    port: config.email.port,
     secure: false,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+      user: config.email.user,
+      pass: config.email.pass
     }
   });
   await transporter.sendMail({
@@ -428,12 +425,12 @@ async function sendOtpEmail(email, otp) {
 // Helper: Send OTP email for email change
 async function sendOtpEmailForEdit(email, otp) {
   let transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
+    host: config.email.host,
+    port: config.email.port,
     secure: false,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+      user: config.email.user,
+      pass: config.email.pass
     }
   });
   await transporter.sendMail({
@@ -519,12 +516,12 @@ router.post('/verify-otp', async (req, res) => {
     delete otpStore[email];
     // Send welcome email
     let transporter = require('nodemailer').createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
+      host: config.email.host,
+      port: config.email.port,
       secure: false,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: config.email.user,
+        pass: config.email.pass
       }
     });
     await transporter.sendMail({
@@ -536,8 +533,8 @@ router.post('/verify-otp', async (req, res) => {
     // Generate JWT token
     const token = jwt.sign(
       { userId: result.insertId, username, email },
-      JWT_SECRET,
-      { expiresIn: '2h' }
+      config.jwt.secret,
+      { expiresIn: config.jwt.expiresIn }
     );
     res.status(201).json({
       message: 'User created successfully',
@@ -603,12 +600,12 @@ router.get('/test', (req, res) => {
 // Helper: Send password changed notification
 async function sendPasswordChangedEmail(email, username) {
   let transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
+    host: config.email.host,
+    port: config.email.port,
     secure: false,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+      user: config.email.user,
+      pass: config.email.pass
     }
   });
   await transporter.sendMail({

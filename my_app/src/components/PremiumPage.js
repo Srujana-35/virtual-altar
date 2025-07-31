@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./PremiumModal.css";
 import { useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
+import config from "../config/config";
 
 const plans = [
   {
@@ -19,7 +20,7 @@ const plans = [
   },
   {
     name: "Monthly",
-    price: "$20/mo",
+    price: `$${config.premium.monthlyPrice}/mo`,
     duration: "1 Month",
     features: [
       "All free features",
@@ -33,7 +34,7 @@ const plans = [
   },
   {
     name: "6 Months",
-    price: "$100/6mo",
+    price: `$${config.premium.sixMonthsPrice}/6mo`,
     duration: "6 Months",
     features: [
       "All monthly features",
@@ -43,7 +44,7 @@ const plans = [
   },
   {
     name: "Annual",
-    price: "$180/yr",
+    price: `$${config.premium.annualPrice}/yr`,
     duration: "12 Months",
     features: [
       "All monthly features",
@@ -79,12 +80,12 @@ export default function PremiumPage() {
 
   // Get profile photo from localStorage
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-  const profilePhoto = userInfo.profile_photo ? `http://localhost:5000/uploads/${userInfo.profile_photo}` : null;
+  const profilePhoto = userInfo.profile_photo ? `${config.apiUrl}/uploads/${userInfo.profile_photo}` : null;
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-    fetch("http://localhost:5000/api/premium/status", {
+    fetch(`${config.apiBaseUrl}/premium/status`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -99,7 +100,7 @@ export default function PremiumPage() {
     setError("");
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/premium/upgrade", {
+      const res = await fetch(`${config.apiBaseUrl}/premium/upgrade`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -120,141 +121,148 @@ export default function PremiumPage() {
   };
 
   return (
-    <div className="premium-page-container">
-      <div className="premium-profile-avatar-bar">
-        <div
-          className="premium-profile-avatar-link"
-          title="Go to Profile"
-          onClick={() => navigate('/profile')}
-          style={{ cursor: 'pointer', position: 'absolute', top: 24, right: 32, zIndex: 10 }}
-        >
-          {profilePhoto ? (
-            <img
-              src={profilePhoto}
-              alt="Profile"
-              className="premium-profile-avatar"
-              style={{ width: 44, height: 44, borderRadius: '50%', border: '2px solid #00b4ff', objectFit: 'cover', background: '#fff' }}
-            />
-          ) : (
-            <FaUserCircle size={44} color="#00b4ff" style={{ background: '#fff', borderRadius: '50%' }} />
-          )}
-        </div>
-      </div>
-      <section className="premium-hero">
-        <h1 className="premium-hero-title">Upgrade to <span className="highlight">MiAltar Prime</span></h1>
-        <p className="premium-hero-subtitle">Unlock exclusive decorations, backgrounds, unlimited altars, and more. Choose the plan that fits you best!</p>
-      </section>
-      <div className="premium-plans-grid">
-        {plans.map(plan => {
-          let isCurrent = false;
-          if (user && user.isPremium && user.premiumPlan === plan.planKey) {
-            isCurrent = true;
-          } else if ((!user || !user.isPremium) && plan.planKey === 'free') {
-            isCurrent = true;
-          }
-          const showRestriction = user && user.isPremium && !isCurrent;
-          return (
-            <div
-              className={`premium-plan-card${plan.popular ? " popular-plan" : ""}${isCurrent ? " current-plan" : ""}${selectedPlan === plan.planKey ? " selected-plan" : ""}`}
-              key={plan.planKey}
-              tabIndex={0}
-              role="button"
-              aria-pressed={selectedPlan === plan.planKey}
-              onClick={() => setSelectedPlan(plan.planKey)}
-              onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setSelectedPlan(plan.planKey)}
-              style={{ cursor: 'pointer', outline: selectedPlan === plan.planKey ? '2px solid #00b4ff' : undefined }}
-            >
-              {plan.popular && <div className="plan-popular-badge">Most Popular</div>}
-              <h3>{plan.name}</h3>
-              <div className="premium-plan-price">{plan.price}</div>
-              <div className="premium-plan-duration">{plan.duration}</div>
-              <ul className="premium-plan-features">
-                {plan.features.map(f => <li key={f}>{f}</li>)}
-              </ul>
-              {isCurrent ? (
-                <button className="premium-current-btn" disabled>Current Plan</button>
-              ) : plan.planKey === 'free' ? null : (
-                <button
-                  className="premium-buy-btn"
-                  onClick={e => {
-                    e.stopPropagation();
-                    if (showRestriction) {
-                      setRestrictionDialog(true);
-                    } else {
-                      handleBuy();
-                    }
-                  }}
-                  disabled={loading || success}
-                >
-                  Buy
-                </button>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      {showDialog && (
-        <div className="premium-confirm-dialog-overlay">
-          <div className="premium-confirm-dialog">
-            <h3>Confirm Purchase</h3>
-            <p>Are you sure you want to buy the <b>{plans.find(p => p.planKey === selectedPlan)?.name || ''}</b> plan?</p>
-            <div className="premium-confirm-actions">
-              <button onClick={handleConfirm} disabled={loading} className="premium-buy-btn">{loading ? "Processing..." : "Confirm"}</button>
-              <button onClick={handleCancel} disabled={loading} className="premium-current-btn">Cancel</button>
-            </div>
-            {error && <div className="premium-error-msg">{error}</div>}
+    <div style={{ 
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      minHeight: '100vh',
+      padding: '24px',
+      color: 'white'
+    }}>
+      <div className="premium-page-container">
+        <div className="premium-profile-avatar-bar">
+          <div
+            className="premium-profile-avatar-link"
+            title="Go to Profile"
+            onClick={() => navigate('/profile')}
+            style={{ cursor: 'pointer', position: 'absolute', top: 24, right: 32, zIndex: 10 }}
+          >
+            {profilePhoto ? (
+              <img
+                src={profilePhoto}
+                alt="Profile"
+                className="premium-profile-avatar"
+                style={{ width: 44, height: 44, borderRadius: '50%', border: '2px solid #00b4ff', objectFit: 'cover', background: '#fff' }}
+              />
+            ) : (
+              <FaUserCircle size={44} color="#00b4ff" style={{ background: '#fff', borderRadius: '50%' }} />
+            )}
           </div>
         </div>
-      )}
-      {restrictionDialog && (
-        <div className="premium-confirm-dialog-overlay">
-          <div className="premium-confirm-dialog">
-            <h3>Plan Change Not Allowed</h3>
-            <p>You already have an active premium plan.<br />
-            You can upgrade or change your plan after it expires on <b>{user && user.premiumExpiry ? new Date(user.premiumExpiry).toLocaleString() : "N/A"}</b>.</p>
-            <div className="premium-confirm-actions">
-              <button onClick={() => setRestrictionDialog(false)} className="premium-current-btn">OK</button>
+        <section className="premium-hero">
+          <h1 className="premium-hero-title">Upgrade to <span className="highlight">MiAltar Prime</span></h1>
+          <p className="premium-hero-subtitle">Unlock exclusive decorations, backgrounds, unlimited altars, and more. Choose the plan that fits you best!</p>
+        </section>
+        <div className="premium-plans-grid">
+          {plans.map(plan => {
+            let isCurrent = false;
+            if (user && user.isPremium && user.premiumPlan === plan.planKey) {
+              isCurrent = true;
+            } else if ((!user || !user.isPremium) && plan.planKey === 'free') {
+              isCurrent = true;
+            }
+            const showRestriction = user && user.isPremium && !isCurrent;
+            return (
+              <div
+                className={`premium-plan-card${plan.popular ? " popular-plan" : ""}${isCurrent ? " current-plan" : ""}${selectedPlan === plan.planKey ? " selected-plan" : ""}`}
+                key={plan.planKey}
+                tabIndex={0}
+                role="button"
+                aria-pressed={selectedPlan === plan.planKey}
+                onClick={() => setSelectedPlan(plan.planKey)}
+                onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && setSelectedPlan(plan.planKey)}
+                style={{ cursor: 'pointer', outline: selectedPlan === plan.planKey ? '2px solid #00b4ff' : undefined }}
+              >
+                {plan.popular && <div className="plan-popular-badge">Most Popular</div>}
+                <h3>{plan.name}</h3>
+                <div className="premium-plan-price">{plan.price}</div>
+                <div className="premium-plan-duration">{plan.duration}</div>
+                <ul className="premium-plan-features">
+                  {plan.features.map(f => <li key={f}>{f}</li>)}
+                </ul>
+                {isCurrent ? (
+                  <button className="premium-current-btn" disabled>Current Plan</button>
+                ) : plan.planKey === 'free' ? null : (
+                  <button
+                    className="premium-buy-btn"
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (showRestriction) {
+                        setRestrictionDialog(true);
+                      } else {
+                        handleBuy();
+                      }
+                    }}
+                    disabled={loading || success}
+                  >
+                    Buy
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {showDialog && (
+          <div className="premium-confirm-dialog-overlay">
+            <div className="premium-confirm-dialog">
+              <h3>Confirm Purchase</h3>
+              <p>Are you sure you want to buy the <b>{plans.find(p => p.planKey === selectedPlan)?.name || ''}</b> plan?</p>
+              <div className="premium-confirm-actions">
+                <button onClick={handleConfirm} disabled={loading} className="premium-buy-btn">{loading ? "Processing..." : "Confirm"}</button>
+                <button onClick={handleCancel} disabled={loading} className="premium-current-btn">Cancel</button>
+              </div>
+              {error && <div className="premium-error-msg">{error}</div>}
             </div>
           </div>
-        </div>
-      )}
-      {user && user.isPremium ? (
-        <div className="premium-success-msg">
-          <h3>🎉 You are a Premium member!</h3>
-          <p>Plan: <b>{user.premiumPlan || "Premium"}</b></p>
-          <p>Expiry: <b>{user.premiumExpiry ? new Date(user.premiumExpiry).toLocaleString() : "N/A"}</b></p>
-        </div>
-      ) : (
-        success && premiumDetails && (
+        )}
+        {restrictionDialog && (
+          <div className="premium-confirm-dialog-overlay">
+            <div className="premium-confirm-dialog">
+              <h3>Plan Change Not Allowed</h3>
+              <p>You already have an active premium plan.<br />
+              You can upgrade or change your plan after it expires on <b>{user && user.premiumExpiry ? new Date(user.premiumExpiry).toLocaleString() : "N/A"}</b>.</p>
+              <div className="premium-confirm-actions">
+                <button onClick={() => setRestrictionDialog(false)} className="premium-current-btn">OK</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {user && user.isPremium ? (
           <div className="premium-success-msg">
-            <h3>🎉 Purchase Successful!</h3>
-            <p>You are now a <b>Premium</b> member.</p>
-            <p>Plan: <b>{premiumDetails.plan}</b></p>
-            <p>Expiry: <b>{new Date(premiumDetails.expiry).toLocaleString()}</b></p>
+            <h3>🎉 You are a Premium member!</h3>
+            <p>Plan: <b>{user.premiumPlan || "Premium"}</b></p>
+            <p>Expiry: <b>{user.premiumExpiry ? new Date(user.premiumExpiry).toLocaleString() : "N/A"}</b></p>
           </div>
-        )
-      )}
-      <section className="premium-feature-table-section">
-        <h2 className="feature-table-title">Compare Features</h2>
-        <table className="premium-feature-table">
-          <thead>
-            <tr>
-              <th>Feature</th>
-              <th>Free</th>
-              <th>Premium</th>
-            </tr>
-          </thead>
-          <tbody>
-            {featureList.map(f => (
-              <tr key={f.label}>
-                <td>{f.label}</td>
-                <td>{f.free ? <span className="feature-check">✔️</span> : "—"}</td>
-                <td>{f.premium ? <span className="feature-check">✔️</span> : "—"}</td>
+        ) : (
+          success && premiumDetails && (
+            <div className="premium-success-msg">
+              <h3>🎉 Purchase Successful!</h3>
+              <p>You are now a <b>Premium</b> member.</p>
+              <p>Plan: <b>{premiumDetails.plan}</b></p>
+              <p>Expiry: <b>{new Date(premiumDetails.expiry).toLocaleString()}</b></p>
+            </div>
+          )
+        )}
+        <section className="premium-feature-table-section">
+          <h2 className="feature-table-title">Compare Features</h2>
+          <table className="premium-feature-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Free</th>
+                <th>Premium</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+            </thead>
+            <tbody>
+              {featureList.map(f => (
+                <tr key={f.label}>
+                  <td>{f.label}</td>
+                  <td>{f.free ? <span className="feature-check">✔️</span> : "—"}</td>
+                  <td>{f.premium ? <span className="feature-check">✔️</span> : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      </div>
     </div>
   );
 } 

@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react'
+import config from '../config/config';
+;
 
 const PLAN_OPTIONS = [
   { value: 'monthly', label: 'Monthly' },
@@ -19,7 +21,7 @@ export default function PremiumManagement() {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/admin/premium-users', {
+      const res = await fetch(`${config.apiBaseUrl}/admin/premium-users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -50,7 +52,7 @@ export default function PremiumManagement() {
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/admin/give-premium', {
+      const res = await fetch(`${config.apiBaseUrl}/admin/give-premium`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

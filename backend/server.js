@@ -10,17 +10,22 @@ const featuresRoutes = require('./routes/features');
 
 const app = express();
 
+const config = require('./config/config');
+
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: config.cors.origin,
+  credentials: true
+}));
 app.use(express.json());
 
 // Serve uploaded images statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, config.upload.path)));
 
 // Test static file serving
 app.get('/test-uploads', (req, res) => {
   const fs = require('fs');
-  const uploadsDir = path.join(__dirname, 'uploads');
+  const uploadsDir = path.join(__dirname, config.upload.path);
   try {
     const files = fs.readdirSync(uploadsDir);
     res.json({ 
@@ -62,8 +67,6 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/premium', premiumRoutes);
 app.use('/api/features', featuresRoutes);
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.listen(config.port, () => {
+  console.log(`Server running on port ${config.port}`);
 });

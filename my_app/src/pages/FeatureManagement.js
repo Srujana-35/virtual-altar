@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'
+import config from '../config/config';
 import { useNavigate } from 'react-router-dom';
 import './admindashboard.css';
 
@@ -15,7 +16,7 @@ function FeatureManagement() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/features', {
+      const response = await fetch(`${config.apiBaseUrl}/features`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -88,7 +89,7 @@ function FeatureManagement() {
           is_free: feature.is_free 
         });
         
-        const response = await fetch(`http://localhost:5000/api/features/${feature.id}`, {
+        const response = await fetch(`${config.apiBaseUrl}/features/${feature.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -173,9 +174,26 @@ function FeatureManagement() {
   if (loading) {
     return (
       <div className="admin-dashboard">
-        <div className="admin-header">
-          <h1>Feature Management</h1>
-          <button onClick={() => navigate('/admin')} className="back-button">← Back to Admin</button>
+        <div className="admin-header" style={{ position: 'relative' }}>
+          <h1 style={{ textAlign: 'center', margin: 0 }}>Feature Management</h1>
+          <button 
+            onClick={() => navigate('/admin')} 
+            className="back-button"
+            style={{ 
+              position: 'absolute', 
+              top: 8, 
+              right: 0, 
+              background: '#1976d2', 
+              color: '#fff', 
+              border: 'none', 
+              borderRadius: 6, 
+              padding: '8px 18px', 
+              fontWeight: 600, 
+              cursor: 'pointer' 
+            }}
+          >
+            ← Back to Admin
+          </button>
         </div>
         <div className="loading-message">Loading features...</div>
       </div>
@@ -183,10 +201,27 @@ function FeatureManagement() {
   }
 
   return (
-    <div className="admin-dashboard">
-      <div className="admin-header">
-        <h1>🎛️ Feature Management</h1>
-        <button onClick={() => navigate('/admin')} className="back-button">← Back to Admin</button>
+    <div className="admin-dashboard" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', minHeight: '100vh' }}>
+      <div className="admin-header" style={{ position: 'relative' }}>
+        <h1 style={{ textAlign: 'center', margin: 0 }}>🎛️ Feature Management</h1>
+        <button 
+          onClick={() => navigate('/admin')} 
+          className="back-button"
+          style={{ 
+            position: 'absolute', 
+            top: 8, 
+            right: 0, 
+            background: '#1976d2', 
+            color: '#fff', 
+            border: 'none', 
+            borderRadius: 6, 
+            padding: '8px 18px', 
+            fontWeight: 600, 
+            cursor: 'pointer' 
+          }}
+        >
+          ← Back to Admin
+        </button>
       </div>
 
       <div className="feature-management-container">

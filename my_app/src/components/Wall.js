@@ -6,17 +6,18 @@ import { Rnd } from "react-rnd";
 import "./Wall.css";
 import ReactDOM from "react-dom";
 import { useFeatures } from "../hooks/useFeatures";
+import config from "../config/config";
 
 
 function Wall() {
   const [images, setImages] = useState([]);
   const [decorations, setDecorations] = useState([]);
-  const [wallColor, setWallColor] = useState("#f4f4f4");
-  const [borderStyle, setBorderStyle] = useState("solid");
+  const [wallColor, setWallColor] = useState(config.defaultWallColor);
+  const [borderStyle, setBorderStyle] = useState(config.defaultBorderStyle);
   const [wallpaper, setWallpaper] = useState(null);
   const [contextMenu, setContextMenu] = useState(null); // Context menu state
-  const [wallHeight, setWallHeight] = useState(600); // default height in px
-  const [wallWidth, setWallWidth] = useState(900); // default width in px
+  const [wallHeight, setWallHeight] = useState(config.defaultWallHeight); // default height in px
+  const [wallWidth, setWallWidth] = useState(config.defaultWallWidth); // default width in px
   const [uploading, setUploading] = useState(false); // New: uploading state
   const [decorationPalette, setDecorationPalette] = useState([
     { id: 'garland1', src: '/decorations/garland1.png' },
@@ -42,7 +43,7 @@ function Wall() {
     const token = localStorage.getItem('token');
     const formData = new FormData();
     formData.append('image', file);
-    const res = await fetch('http://localhost:5000/api/wall/upload-image', {
+    const res = await fetch(`${config.apiBaseUrl}/wall/upload-image`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
       body: formData
@@ -171,7 +172,7 @@ function Wall() {
     console.log('makeImageUrl called with src:', src); // Debug
     if (!src) return null;
     if (src.startsWith('/') || src.startsWith('data:')) return src;
-    const fullUrl = `http://localhost:5000/uploads/${src}`;
+    const fullUrl = `${config.apiUrl}/uploads/${src}`;
     console.log('Generated URL:', fullUrl); // Debug
     return fullUrl;
   };
@@ -197,7 +198,7 @@ function Wall() {
     if (!token) return;
     try {
       // 1. Get list of walls (most recent first)
-      const listRes = await fetch('http://localhost:5000/api/wall/list', {
+      const listRes = await fetch(`${config.apiBaseUrl}/wall/list`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const listData = await listRes.json();
@@ -207,7 +208,7 @@ function Wall() {
       }
       const latestWallId = listData.walls[0].id;
       // 2. Load the latest wall
-      const wallRes = await fetch(`http://localhost:5000/api/wall/load/${latestWallId}`, {
+      const wallRes = await fetch(`${config.apiBaseUrl}/wall/load/${latestWallId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const wallData = await wallRes.json();
@@ -338,7 +339,7 @@ function Wall() {
       let response, data;
       if (currentWallId) {
         // Update existing wall
-        response = await fetch(`http://localhost:5000/api/wall/update/${currentWallId}`, {
+        response = await fetch(`${config.apiBaseUrl}/wall/update/${currentWallId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -354,7 +355,7 @@ function Wall() {
         }
       } else {
         // Create new wall
-        response = await fetch('http://localhost:5000/api/wall/save', {
+        response = await fetch(`${config.apiBaseUrl}/wall/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -417,7 +418,7 @@ function Wall() {
 
   // At the top of the Wall function, get the user's profile photo from localStorage (if available)
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-  const profilePhoto = userInfo.profile_photo ? `http://localhost:5000/uploads/${userInfo.profile_photo}` : null;
+      const profilePhoto = userInfo.profile_photo ? `${config.apiUrl}/uploads/${userInfo.profile_photo}` : null;
 
   return (
     <>

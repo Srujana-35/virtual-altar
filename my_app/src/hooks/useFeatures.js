@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
+import config from '../config/config';
 
 // Create context for features
 const FeaturesContext = createContext();
@@ -38,7 +39,7 @@ export const FeaturesProvider = ({ children }) => {
       }
 
       console.log('📡 Making API call to /api/features/user');
-      const response = await fetch('http://localhost:5000/api/features/user', {
+      const response = await fetch(`${config.apiBaseUrl}/features/user`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -142,7 +143,7 @@ export const useFeaturesStandalone = () => {
         return;
       }
 
-      const response = await fetch('http://localhost:5000/api/features/user', {
+      const response = await fetch(`${config.apiBaseUrl}/features/user`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
