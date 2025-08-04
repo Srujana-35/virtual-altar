@@ -1,207 +1,589 @@
 /* MyAltarsPage Specific Styles */
 
-.profile-container {
+.myaltars-page {
   min-height: 100vh;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 25%, #60a5fa 50%, #93c5fd 75%, #dbeafe 100%);
   position: relative;
-  background: #f8fafc;
+  overflow: hidden;
 }
 
-.admin-profile-icon-btn {
+.myaltars-page::before {
+  content: '';
   position: absolute;
-  top: 24px;
-  right: 36px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 32px;
-  padding: 0;
-  z-index: 1100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    /* Diagonal stripes */
+    linear-gradient(45deg, transparent 40%, rgba(59, 130, 246, 0.15) 45%, transparent 50%),
+    linear-gradient(-45deg, transparent 30%, rgba(30, 58, 138, 0.1) 35%, transparent 40%),
+    linear-gradient(30deg, transparent 25%, rgba(59, 130, 246, 0.08) 30%, transparent 35%),
+    linear-gradient(-30deg, transparent 60%, rgba(30, 58, 138, 0.12) 65%, transparent 70%),
+    /* Horizontal stripes */
+    linear-gradient(90deg, transparent 20%, rgba(59, 130, 246, 0.1) 25%, transparent 30%),
+    linear-gradient(90deg, transparent 70%, rgba(30, 58, 138, 0.08) 75%, transparent 80%),
+    /* Vertical stripes */
+    linear-gradient(0deg, transparent 15%, rgba(59, 130, 246, 0.12) 20%, transparent 25%),
+    linear-gradient(0deg, transparent 85%, rgba(30, 58, 138, 0.1) 90%, transparent 95%),
+    /* Radial gradients for depth */
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(30, 58, 138, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  z-index: 1;
+  animation: stripeShift 15s ease-in-out infinite;
 }
-.admin-profile-icon-btn img {
-  width: 44px;
-  height: 44px;
+
+.myaltars-page::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    /* Triangle patterns */
+    linear-gradient(45deg, transparent 45%, rgba(59, 130, 246, 0.05) 50%, transparent 55%),
+    linear-gradient(-45deg, transparent 35%, rgba(30, 58, 138, 0.08) 40%, transparent 45%),
+    /* Zigzag lines */
+    linear-gradient(90deg, transparent 10%, rgba(59, 130, 246, 0.1) 12%, transparent 14%),
+    linear-gradient(90deg, transparent 86%, rgba(30, 58, 138, 0.08) 88%, transparent 90%),
+    /* Cross patterns */
+    linear-gradient(45deg, transparent 65%, rgba(59, 130, 246, 0.06) 70%, transparent 75%),
+    linear-gradient(-45deg, transparent 25%, rgba(30, 58, 138, 0.04) 30%, transparent 35%);
+  z-index: 1;
+  animation: patternFloat 20s ease-in-out infinite;
+}
+
+/* Header Styling */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(30, 58, 138, 0.95);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all 0.3s ease-in-out;
+}
+
+.logo:hover {
+  transform: scale(1.05);
+}
+
+.logo-text {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+  transition: all 0.3s ease-in-out;
+}
+
+.logo-text:hover {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.logo-subtitle {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease-in-out;
+}
+
+.logo-subtitle:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.nav {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-section {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease-in-out;
+  padding: 8px 16px;
+  border-radius: 8px;
+  letter-spacing: 0.5px;
+  position: relative;
+}
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #60a5fa 0%, #93c5fd 100%);
+  transition: all 0.3s ease-in-out;
+  transform: translateX(-50%);
+}
+
+.nav-link:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.nav-link:hover::before {
+  width: 80%;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -8px;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: all 0.3s ease-in-out;
+}
+
+.nav-link:hover::after {
+  opacity: 1;
+}
+
+.profile-settings-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(10px);
+}
+
+.profile-settings-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-settings-btn img {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #1976d2;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.profile-settings-btn span {
+  font-size: 1.5rem;
+}
+
+.profile-icon-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px;
+  border-radius: 50%;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  width: 48px;
+  height: 48px;
+}
+
+.profile-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-icon-btn img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.profile-icon-btn span {
+  font-size: 1.5rem;
+}
+
+.myaltars-main {
+  padding: 120px 0 60px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.myaltars-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.1),
+    0 8px 32px rgba(30, 58, 138, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+  animation: gentleFloat 6s ease-in-out infinite;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.myaltars-content:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 24px 70px rgba(0, 0, 0, 0.12),
+    0 10px 40px rgba(30, 58, 138, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.myaltars-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.myaltars-title {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  margin-bottom: 48px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 2;
+  animation: softPulse 4s ease-in-out infinite;
+  letter-spacing: 1px;
+}
+
+.myaltars-actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 48px;
 }
 
 .myaltars-create-altar-btn {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  background: linear-gradient(90deg, #1976d2 60%, #64b5f6 100%);
-  color: #fff;
+  gap: 16px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  color: white;
   font-weight: 700;
-  font-size: 1.15rem;
-  padding: 14px 36px;
-  border-radius: 32px;
+  font-size: 1.3rem;
+  padding: 20px 40px;
+  border-radius: 16px;
   text-decoration: none;
-  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.18);
-  transition: background 0.2s, transform 0.2s;
+  box-shadow: 
+    0 4px 16px rgba(59, 130, 246, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
   border: none;
-  margin: 0 auto;
-}
-.myaltars-create-altar-btn:hover {
-  background: linear-gradient(90deg, #125ea2 60%, #1976d2 100%);
-  transform: translateY(-2px) scale(1.04);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.5px;
 }
 
-.images-section {
+.myaltars-create-altar-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
   width: 100%;
-  background: linear-gradient(135deg, #f8fafc 60%, #e3e9f3 100%);
-  border-radius: 18px;
-  box-shadow: 0 2px 16px rgba(60,60,120,0.10);
-  padding: 36px 24px 24px 24px;
-  margin-top: 24px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease-in-out;
 }
-.images-section h2 {
-  color: #1976d2;
-  font-size: 2rem;
+
+.myaltars-create-altar-btn:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 
+    0 8px 25px rgba(59, 130, 246, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.myaltars-create-altar-btn:hover::before {
+  left: 100%;
+}
+
+.myaltars-section {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.9) 0%, rgba(241, 245, 249, 0.8) 100%);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px rgba(30, 58, 138, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05);
+  padding: 32px;
+  margin-top: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.myaltars-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+  opacity: 0.8;
+}
+
+.myaltars-section-title {
+  color: #1e3a8a;
+  font-size: 2.2rem;
   font-weight: 700;
   margin-bottom: 24px;
   text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-.images-grid {
+
+.altars-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  gap: 28px;
-  margin-top: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
 }
-/* --- WALL CARD: Modern Glassy Style --- */
-.wall-card {
-  border: 1.5px solid #e0e4f7;
-  border-radius: 22px;
+
+/* Altar Card Styling */
+.altar-card {
+  border: 1.5px solid rgba(226, 232, 240, 0.8);
+  border-radius: 20px;
   overflow: hidden;
-  background: rgba(255,255,255,0.92);
-  box-shadow: 0 4px 24px rgba(25, 118, 210, 0.10), 0 1.5px 8px rgba(60,72,120,0.08);
-  transition: transform 0.22s, box-shadow 0.22s, border 0.18s, background 0.18s;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 
+    0 8px 32px rgba(30, 58, 138, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-.wall-card:hover {
-  transform: translateY(-6px) scale(1.035);
-  box-shadow: 0 12px 40px rgba(25, 118, 210, 0.16);
-  border: 1.5px solid #1976d2;
-  background: rgba(255,255,255,0.98);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
 }
 
-.wall-preview {
+.altar-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.altar-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 16px 48px rgba(30, 58, 138, 0.15),
+    0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.altar-card:hover::before {
+  opacity: 1;
+}
+
+.altar-preview {
   position: relative;
-  height: 190px;
+  height: 200px;
   overflow: hidden;
-  border-bottom: 1.5px solid #e0e4f7;
-  background: #f6f8fe;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: box-shadow 0.18s;
+  transition: all 0.3s ease-in-out;
 }
-.wall-preview img {
+
+.altar-preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 0 0 22px 22px;
-  transition: transform 0.22s, box-shadow 0.18s;
-  box-shadow: 0 2px 12px rgba(25, 118, 210, 0.10);
-}
-.wall-preview:hover img {
-  transform: scale(1.06);
-  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.13);
+  transition: transform 0.3s ease-in-out;
+  box-shadow: 0 4px 16px rgba(30, 58, 138, 0.1);
 }
 
-.wall-info {
-  padding: 22px 22px 16px 22px;
+.altar-preview:hover img {
+  transform: scale(1.1);
+}
+
+.no-preview {
+  color: #64748b;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 20px;
+}
+
+.altar-info {
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-start;
 }
-.wall-name {
+
+.altar-name {
   margin: 0;
-  color: #1a237e;
-  font-size: 1.25rem;
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: 0.7px;
-  text-shadow: 0 2px 8px rgba(25, 118, 210, 0.06);
+  color: #1e293b;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
-.wall-date {
-  color: #888;
-  font-size: 0.98rem;
-  margin-bottom: 6px;
+
+.altar-date {
+  color: #64748b;
+  font-size: 0.95rem;
   font-weight: 500;
+  margin-bottom: 8px;
 }
-.wall-actions {
+
+.altar-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 8px;
   width: 100%;
 }
+
 .restore-btn, .delete-btn, .share-btn {
   flex: 1;
   min-width: 0;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  border-radius: 24px;
-  padding: 10px 0;
+  border-radius: 12px;
+  padding: 10px 8px;
   border: none;
   outline: none;
-  transition: background 0.18s, color 0.18s, transform 0.18s;
-  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.08);
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-}
-.restore-btn {
-  background: linear-gradient(90deg, #43a047 60%, #81c784 100%);
-  color: #fff;
-}
-.restore-btn:hover {
-  background: linear-gradient(90deg, #388e3c 60%, #43a047 100%);
-  transform: translateY(-2px) scale(1.04);
-}
-.delete-btn {
-  background: linear-gradient(90deg, #e53935 60%, #ff8a80 100%);
-  color: #fff;
-}
-.delete-btn:hover {
-  background: linear-gradient(90deg, #b71c1c 60%, #e53935 100%);
-  transform: translateY(-2px) scale(1.04);
-}
-.share-btn {
-  background: linear-gradient(90deg, #1976d2 60%, #64b5f6 100%);
-  color: #fff;
-}
-.share-btn:hover, .share-btn:focus {
-  background: linear-gradient(90deg, #125ea2 60%, #1976d2 100%);
-  transform: translateY(-2px) scale(1.04);
+  gap: 6px;
+  cursor: pointer;
 }
 
-/* --- EMPTY STATE --- */
-.no-images {
+.restore-btn {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: white;
+}
+
+.restore-btn:hover {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.delete-btn {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: white;
+}
+
+.delete-btn:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.share-btn {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  color: white;
+}
+
+.share-btn:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Empty State */
+.no-altars {
   text-align: center;
   padding: 64px 0 40px 0;
-  color: #666;
-  font-size: 1.18rem;
+  color: #64748b;
+  font-size: 1.2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
-  background: rgba(255,255,255,0.92);
-  border-radius: 18px;
-  box-shadow: 0 2px 16px rgba(60,60,120,0.10);
+  gap: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(30, 58, 138, 0.1);
   margin-top: 32px;
+  border: 1px solid rgba(226, 232, 240, 0.6);
 }
-.no-images p {
-  font-size: 1.22rem;
-  margin-bottom: 18px;
-  color: #283593;
+
+.no-altars p {
+  font-size: 1.3rem;
+  margin-bottom: 16px;
+  color: #1e293b;
   font-weight: 600;
 }
 
@@ -209,95 +591,122 @@
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.7);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(8px);
 }
+
 .modal-content {
-  background: #fff;
-  border-radius: 10px;
-  padding: 2rem 1.5rem 1.5rem 1.5rem;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 32px 24px 24px 24px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 8px 32px rgba(30, 58, 138, 0.2);
   max-width: 95vw;
   max-height: 90vh;
   overflow: auto;
   position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
+
 .modal-close {
   position: absolute;
-  top: 10px;
-  right: 18px;
-  background: none;
+  top: 16px;
+  right: 20px;
+  background: rgba(220, 38, 38, 0.1);
   border: none;
-  font-size: 2rem;
-  color: #888;
+  font-size: 1.5rem;
+  color: #dc2626;
   cursor: pointer;
   z-index: 10;
-  transition: color 0.2s;
+  transition: all 0.3s ease-in-out;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .modal-close:hover {
-  color: #d33;
+  background: rgba(220, 38, 38, 0.2);
+  color: #b91c1c;
+  transform: scale(1.1);
 }
 
-.profile-main {
+/* Loading state */
+.loading {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  justify-content: flex-start;
-  min-height: 80vh;
-  padding-top: 80px;
-  margin-top: 80px;
-  width: 100%;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
+  min-height: 100vh;
+  font-size: 1.2rem;
+  color: white;
+  font-weight: 600;
 }
 
-.profile-content {
-  width: 100%;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  background: rgba(255,255,255,0.92);
-  border-radius: 28px;
-  box-shadow: 0 8px 32px rgba(60,72,120,0.13);
-  padding: 48px 32px 36px 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  border: 2.5px solid #e0e4f7;
-  transition: box-shadow 0.2s, border 0.2s;
-}
-
-@media (max-width: 900px) {
-  .images-section {
-    padding: 18px 2vw 18px 2vw;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 16px;
   }
-  .images-grid {
+  
+  .nav {
     gap: 16px;
   }
-  .wall-card {
-    border-radius: 14px;
+  
+  .nav-link {
+    font-size: 0.9rem;
+    padding: 6px 12px;
   }
-  .wall-preview {
-    height: 120px;
+  
+  .myaltars-content {
+    margin: 0 16px;
+    padding: 32px 20px;
+  }
+  
+  .myaltars-title {
+    font-size: 2.5rem;
+  }
+  
+  .altars-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .altar-preview {
+    height: 160px;
   }
 }
-@media (max-width: 600px) {
-  .images-section {
-    padding: 10px 2vw 10px 2vw;
+
+@media (max-width: 480px) {
+  .myaltars-content {
+    padding: 24px 16px;
   }
-  .images-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
+  
+  .myaltars-title {
+    font-size: 2rem;
   }
-  .wall-preview {
-    height: 90px;
+  
+  .altar-preview {
+    height: 140px;
   }
-  .wall-card {
-    border-radius: 10px;
+  
+  .altar-info {
+    padding: 16px;
+  }
+  
+  .altar-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .restore-btn, .delete-btn, .share-btn {
+    padding: 12px 8px;
   }
 } 

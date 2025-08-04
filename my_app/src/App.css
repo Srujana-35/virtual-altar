@@ -49,6 +49,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Wall page background override */
+html.wall-page-background,
+body.wall-page-background {
+  background: linear-gradient(135deg, #f8fafc 0%, #e3e9f3 100%) !important;
+  min-height: 100vh;
+}
+
 .App {
   min-height: 100vh;
   display: flex;
@@ -57,8 +64,7 @@ body {
 
 /* ===== HEADER COMPONENTS ===== */
 .header {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: #ffffff;
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
@@ -75,6 +81,21 @@ body {
 }
 
 .logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-direction: row;
+}
+
+.logo-image {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.logo-text-container {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -107,14 +128,13 @@ body {
   color: var(--text-secondary);
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.2s ease-in-out;
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-md);
+  transition: color 0.2s ease-in-out;
 }
 
 .nav-link:hover {
   color: var(--primary-color);
-  background-color: var(--bg-secondary);
 }
 
 /* ===== BUTTON COMPONENTS ===== */
@@ -156,10 +176,8 @@ body {
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-dark);
-  border-color: var(--primary-dark);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .btn-secondary {
@@ -169,8 +187,8 @@ body {
 }
 
 .btn-secondary:hover {
-  background-color: var(--bg-tertiary);
-  border-color: var(--text-light);
+  background-color: var(--bg-secondary);
+  border-color: var(--border-color);
 }
 
 .btn-accent {
@@ -191,7 +209,7 @@ body {
 }
 
 .btn-ghost:hover {
-  background-color: var(--bg-secondary);
+  background-color: transparent;
 }
 
 .btn-danger {
@@ -595,6 +613,15 @@ body {
   
   .logo-text {
     font-size: 1.5rem;
+  }
+  
+  .logo-image {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .logo {
+    flex-direction: row !important;
   }
 }
 

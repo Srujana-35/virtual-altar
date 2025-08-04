@@ -2,11 +2,12 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 25%, #60a5fa 50%, #93c5fd 75%, #dbeafe 100%);
   position: relative;
   overflow: hidden;
 }
 
+/* Abstract Geometric Background */
 .admin-dashboard-flex::before {
   content: '';
   position: absolute;
@@ -14,8 +15,24 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background: 
+    /* Diagonal stripes */
+    linear-gradient(45deg, transparent 40%, rgba(59, 130, 246, 0.15) 45%, transparent 50%),
+    linear-gradient(-45deg, transparent 30%, rgba(30, 58, 138, 0.1) 35%, transparent 40%),
+    linear-gradient(30deg, transparent 25%, rgba(59, 130, 246, 0.08) 30%, transparent 35%),
+    linear-gradient(-30deg, transparent 60%, rgba(30, 58, 138, 0.12) 65%, transparent 70%),
+    /* Horizontal stripes */
+    linear-gradient(90deg, transparent 20%, rgba(59, 130, 246, 0.1) 25%, transparent 30%),
+    linear-gradient(90deg, transparent 70%, rgba(30, 58, 138, 0.08) 75%, transparent 80%),
+    /* Vertical stripes */
+    linear-gradient(0deg, transparent 15%, rgba(59, 130, 246, 0.12) 20%, transparent 25%),
+    linear-gradient(0deg, transparent 85%, rgba(30, 58, 138, 0.1) 90%, transparent 95%),
+    /* Radial gradients for depth */
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(30, 58, 138, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
   z-index: 1;
+  animation: stripeShift 15s ease-in-out infinite;
 }
 
 .admin-header {
@@ -80,15 +97,15 @@
 
 .admin-dashboard-sidebar {
   width: 260px;
-  background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 8px 32px rgba(30, 58, 138, 0.1);
   padding: 36px 18px 24px 18px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   border-radius: 0 18px 18px 0;
-  border: 1px solid rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(30, 58, 138, 0.1);
   position: relative;
   z-index: 2;
 }
@@ -96,12 +113,10 @@
 .admin-dashboard-title {
   font-size: 1.7rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1e3a8a;
   margin-bottom: 32px;
   text-align: left;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .admin-dashboard-btn-group-vertical {
@@ -118,34 +133,34 @@
   font-weight: 600;
   border: none;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--text-primary);
+  background: rgba(30, 58, 138, 0.1);
+  color: #1e3a8a;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-bottom: 0;
-  border: 1px solid rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(30, 58, 138, 0.2);
   backdrop-filter: blur(10px);
 }
 
 .admin-dashboard-btn.dashboard-btn {
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  color: white;
+  box-shadow: 0 4px 16px rgba(30, 58, 138, 0.3);
   border: none;
 }
 
 .admin-dashboard-btn.dashboard-btn:hover {
-  background: linear-gradient(135deg, var(--primary-dark), var(--accent-dark));
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #1e40af, #2563eb);
+  box-shadow: 0 8px 24px rgba(30, 58, 138, 0.4);
   transform: translateY(-2px);
 }
 
 .admin-dashboard-btn.active,
 .admin-dashboard-btn:hover {
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-  color: #fff;
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  color: white;
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 16px rgba(30, 58, 138, 0.3);
   border: none;
 }
 
@@ -404,6 +419,13 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
   gap: 15px;
+}
+
+/* Specific styling for feature management grid */
+.feature-management-container .features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
 }
 
 .feature-card {

@@ -3,6 +3,7 @@ import config from '../config/config';
 
 import './pages.css';
 import { Link, useNavigate } from "react-router-dom";
+import mylogo from '../assets/mylogo.jpg';
 
 function Signup() {
     const navigate = useNavigate();
@@ -32,7 +33,7 @@ function Signup() {
                 if (userInfo) {
                     const parsed = JSON.parse(userInfo);
                     if (parsed.profile_photo) {
-                        setProfilePhoto(`${config.apiUrl}/uploads/${parsed.profile_photo}`);
+                        setProfilePhoto(parsed.profile_photo);
                         return;
                     }
                 }
@@ -207,8 +208,11 @@ function Signup() {
                 <div className="container">
                     <div className="header-content">
                         <div className="logo">
-                            <span className="logo-text">MiAltar</span>
-                            <span className="logo-subtitle">Virtual Memorial</span>
+                            <img src={mylogo} alt="MiAltar Logo" className="logo-image" />
+                            <div className="logo-text-container">
+                                <span className="logo-text">MiAltar</span>
+                                <span className="logo-subtitle">Virtual Memorial</span>
+                            </div>
                         </div>
                         <nav className="nav">
                             <Link to="/" className="nav-link">Home</Link>
@@ -402,7 +406,7 @@ function Signup() {
                         <h2>Start Your Memorial Journey</h2>
                         <p>Create meaningful virtual altars to honor and remember your loved ones with beautiful designs and heartfelt tributes</p>
                         <div className="altar-preview">
-                            <span style={{fontSize: '3rem'}}>🕯️</span>
+                            <span className="candle-symbol" style={{fontSize: '3rem'}}>🕯️</span>
                         </div>
                     </div>
                 </div>

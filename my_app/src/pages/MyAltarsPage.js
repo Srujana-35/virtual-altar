@@ -6,6 +6,7 @@ import ShareDialog from '../components/ShareDialog';
 import './myaltarspage.css';
 import './pages.css';
 import { useFeatures } from '../hooks/useFeatures';
+import mylogo from '../assets/mylogo.jpg';
 
 export default function MyAltarsPage() {
   const [savedWalls, setSavedWalls] = useState([]);
@@ -33,7 +34,7 @@ export default function MyAltarsPage() {
     if (userInfo) {
       const parsed = JSON.parse(userInfo);
       if (parsed.profile_photo) {
-        setProfilePhoto(`${config.apiUrl}/uploads/${parsed.profile_photo}`);
+        setProfilePhoto(parsed.profile_photo);
       }
     }
     // Fetch premium status
@@ -121,68 +122,87 @@ export default function MyAltarsPage() {
 
   if (loading) {
     return (
-      <div className="profile-container">
+      <div className="myaltars-page">
         <div className="loading">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="profile-container">
-      {/* Profile photo icon top right */}
-      <button
-        className="admin-profile-icon-btn"
-        title="Go to Profile"
-        onClick={() => navigate('/profile')}
-      >
-        {profilePhoto ? (
-          <img src={profilePhoto} alt="Profile" />
-        ) : (
-          <span role="img" aria-label="profile">👤</span>
-        )}
-      </button>
-      <main className="profile-main">
-        <div className="profile-content">
-          <h1>My Altars</h1>
+    <div className="myaltars-page">
+      {/* Header */}
+      <header className="header">
+        <div className="container">
+          <div className="header-content">
+            <div className="logo">
+              <img src={mylogo} alt="MiAltar Logo" className="logo-image" />
+              <div className="logo-text-container">
+                <span className="logo-text">MiAltar</span>
+                <span className="logo-subtitle">Virtual Memorial</span>
+              </div>
+            </div>
+            <div className="nav-section">
+              <nav className="nav">
+                <Link to="/" className="nav-link">Home</Link>
+               
+              </nav>
+              <button
+                className="profile-icon-btn"
+                title="Go to Profile"
+                onClick={() => navigate('/profile')}
+              >
+                {profilePhoto ? (
+                  <img src={profilePhoto} alt="Profile" />
+                ) : (
+                  <span role="img" aria-label="profile">👤</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="myaltars-main">
+        <div className="myaltars-content">
+          <h1 className="myaltars-title">My Altars</h1>
           {/* Create a New Wall Button */}
-          <div className="profile-actions">
+          <div className="myaltars-actions">
             <button className="myaltars-create-altar-btn" onClick={handleCreateAltar}>
               ➕ Create a New Altar
             </button>
           </div>
           {/* Saved Walls Section */}
-          <section className="images-section">
-            <h2>My Saved Altars</h2>
+          <section className="myaltars-section">
+            <h2 className="myaltars-section-title">My Saved Altars</h2>
             {savedWalls.length === 0 ? (
-              <div className="no-images">
+              <div className="no-altars">
                 <p>No saved altars yet.</p>
                 <Link to="/wall" className="myaltars-create-altar-btn">Create Altar</Link>
               </div>
             ) : (
-              <div className="images-grid">
+              <div className="altars-grid">
                 {savedWalls.map((wall) => {
                   const makeImageUrl = (src) => {
                     if (!src) return null;
                     if (src.startsWith('blob:') || src.startsWith('/') || src.startsWith('data:')) return src;
-                    return `${config.apiUrl}/uploads/${src}`;
+                    return src; // No uploads directory needed
                   };
                   let preview = null;
                   if (wall.wallData.wallpaper) preview = makeImageUrl(wall.wallData.wallpaper);
                   else if (wall.wallData.images && wall.wallData.images.length > 0) preview = makeImageUrl(wall.wallData.images[0].src);
                   return (
-                    <div key={wall.id} className="wall-card">
-                      <div className="wall-preview" onClick={() => setPreviewWall(wall)}>
+                    <div key={wall.id} className="altar-card">
+                      <div className="altar-preview" onClick={() => setPreviewWall(wall)}>
                         {preview ? (
-                          <img src={preview} alt="Saved wall preview" />
+                          <img src={preview} alt="Saved altar preview" />
                         ) : (
                           <div className="no-preview">No Preview</div>
                         )}
                       </div>
-                      <div className="wall-info">
-                        <h3 className="wall-name">{wall.name || 'Untitled Wall'}</h3>
-                        <span className="wall-date">{new Date(wall.updatedAt || wall.createdAt).toLocaleDateString()}</span>
-                        {/* Removed public link display here */}
-                        <div className="wall-actions">
+                      <div className="altar-info">
+                        <h3 className="altar-name">{wall.name || 'Untitled Altar'}</h3>
+                        <span className="altar-date">{new Date(wall.updatedAt || wall.createdAt).toLocaleDateString()}</span>
+                        <div className="altar-actions">
                           <button className="restore-btn" onClick={() => handleRestoreWall(wall)}>
                             ♻️ Restore
                           </button>
@@ -205,12 +225,13 @@ export default function MyAltarsPage() {
           </section>
         </div>
       </main>
+
       {/* Modal for previewing wall */}
       {previewWall && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={closeModal}>&times;</button>
-            <h2 style={{ textAlign: 'center' }}>{previewWall.name || 'Untitled Wall'}</h2>
+            <h2 style={{ textAlign: 'center' }}>{previewWall.name || 'Untitled Altar'}</h2>
             <WallPreview wallData={previewWall.wallData} style={{ maxWidth: '100%', maxHeight: '70vh', display: 'block', margin: '0 auto' }} />
             <div style={{ textAlign: 'center', marginTop: 10 }}>
               <span>Created: {new Date(previewWall.createdAt).toLocaleString()}</span>
@@ -220,6 +241,7 @@ export default function MyAltarsPage() {
           </div>
         </div>
       )}
+
       {/* Upgrade Dialog for free users hitting the limit */}
       {showUpgradeDialog && (
         <div className="premium-confirm-dialog-overlay">
@@ -244,12 +266,14 @@ export default function MyAltarsPage() {
           </div>
         </div>
       )}
+
       <ShareDialog
         open={shareDialogOpen}
         url={shareUrl}
         onClose={() => setShareDialogOpen(false)}
         altarId={selectedAltarId}
       />
+
       <footer className="footer">
         <p>© 2025 Virtual Wall. All rights reserved.</p>
         <p>Contact: support@virtualwall.com</p>

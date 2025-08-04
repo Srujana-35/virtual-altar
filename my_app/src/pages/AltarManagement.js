@@ -93,7 +93,7 @@ export default function AltarManagement() {
                           >
                             {previewImg ? (
                               <img
-                                src={previewImg.startsWith('http') || previewImg.startsWith('/') ? previewImg : `${config.apiUrl}/uploads/${previewImg}`}
+                                src={previewImg.startsWith('http') || previewImg.startsWith('/') || previewImg.startsWith('data:') ? previewImg : previewImg}
                                 alt={altar.name}
                                 style={{ width: 80, height: 60, objectFit: 'cover', border: '2px solid #1976d2', borderRadius: 6 }}
                               />

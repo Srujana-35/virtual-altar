@@ -3,6 +3,7 @@ import config from '../config/config';
 import { Link, useNavigate } from "react-router-dom";
 import './homepage.css';
 import bg2img from '../assets/bg2img.jpg';
+import mylogo from '../assets/mylogo.jpg';
 
 
 function Homepage() {
@@ -20,7 +21,7 @@ function Homepage() {
         if (userInfo) {
           const parsed = JSON.parse(userInfo);
           if (parsed.profile_photo) {
-            setProfilePhoto(`${config.apiUrl}/uploads/${parsed.profile_photo}`);
+            setProfilePhoto(parsed.profile_photo);
             return;
           }
         }
@@ -41,8 +42,11 @@ function Homepage() {
         <div className="container">
           <div className="header-content">
             <div className="logo">
-              <span className="logo-text">MiAltar</span>
-              <span className="logo-subtitle">Virtual Memorial</span>
+              <img src={mylogo} alt="MiAltar Logo" className="logo-image" />
+              <div className="logo-text-container">
+                <span className="logo-text">MiAltar</span>
+                <span className="logo-subtitle">Virtual Memorial</span>
+              </div>
             </div>
             <nav className="nav">
               <Link to="/" className="nav-link">Home</Link>
@@ -91,7 +95,6 @@ function Homepage() {
       {/* Main Content with Background Image */}
       <div 
         className="main-content-background"
-        style={{ backgroundImage: `url(${bg2img})` }}
       >
                 {/* Combined Hero and Background Section */}
         <section className="background-section">
@@ -125,11 +128,13 @@ function Homepage() {
                 </div>
               </div>
               <div className="background-visual">
-                <img 
-                  src={bg2img} 
-                  alt="Memorial Background" 
-                  className="background-image"
-                />
+                <div className="altar-image-container">
+                  <img 
+                    src={bg2img} 
+                    alt="Memorial Background" 
+                    className="background-image"
+                  />
+                </div>
               </div>
             </div>
           </div>

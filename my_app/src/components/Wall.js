@@ -7,6 +7,7 @@ import "./Wall.css";
 import ReactDOM from "react-dom";
 import { useFeatures } from "../hooks/useFeatures";
 import config from "../config/config";
+import mylogo from '../assets/mylogo.jpg';
 
 
 function Wall() {
@@ -38,43 +39,42 @@ function Wall() {
     console.log('Wall.js - Is premium:', isPremium);
   }, [features, canUseFeature, isPremium]);
 
-  // Helper to upload a file to the backend and get the filename
-  const uploadImageToServer = async (file) => {
-    const token = localStorage.getItem('token');
-    const formData = new FormData();
-    formData.append('image', file);
-    const res = await fetch(`${config.apiBaseUrl}/wall/upload-image`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
-      body: formData
+  // Helper to convert file to base64 string (for wall images only)
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        // Return the full data URL (data:image/jpeg;base64,xxx)
+        resolve(reader.result);
+      };
+      reader.onerror = error => reject(error);
     });
-    if (!res.ok) throw new Error('Image upload failed');
-    const data = await res.json();
-    console.log('Upload response:', data); // Debug
-    return data.filename;
   };
 
-  // Upload images to backend and add to wall
+
+
+  // Upload images and convert to base64
   const handleUpload = async (e) => {
     const files = Array.from(e.target.files);
     const baseOffset = 30; // pixels to offset each image
     setUploading(true);
     try {
       const uploadedImages = await Promise.all(files.map(async (file, idx) => {
-        const filename = await uploadImageToServer(file);
-        console.log('Uploaded filename:', filename); // Debug
-      const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      // Offset each image by its index and the current number of images
-      const offset = (images.length + idx) * baseOffset;
-      return {
-        id: uniqueId,
-          src: filename,
-        shape: "square",
-        width: 120,
-        height: 120,
-        x: 50 + offset,
-        y: 50 + offset
-      };
+        const base64Data = await fileToBase64(file);
+        console.log('Converted file to base64:', file.name); // Debug
+        const uniqueId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        // Offset each image by its index and the current number of images
+        const offset = (images.length + idx) * baseOffset;
+        return {
+          id: uniqueId,
+          src: base64Data, // Store as base64 data URL
+          shape: "square",
+          width: 120,
+          height: 120,
+          x: 50 + offset,
+          y: 50 + offset
+        };
       }));
       console.log('Final uploaded images:', uploadedImages); // Debug
       setImages([...images, ...uploadedImages]);
@@ -85,14 +85,14 @@ function Wall() {
     }
   };
 
-  // Upload wallpaper to backend and set as wallpaper
+  // Upload wallpaper and convert to base64
   const handleWallpaperUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setUploading(true);
       try {
-        const filename = await uploadImageToServer(file);
-        setWallpaper(filename);
+        const base64Data = await fileToBase64(file);
+        setWallpaper(base64Data); // Store as base64 data URL
       } catch (err) {
         alert('Failed to upload wallpaper.');
       } finally {
@@ -101,16 +101,16 @@ function Wall() {
     }
   };
 
-  // Upload user decoration and add to palette
+  // Upload user decoration and convert to base64
   const handleDecorationUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
     try {
-      const filename = await uploadImageToServer(file);
+      const base64Data = await fileToBase64(file);
       setDecorationPalette(prev => [
         ...prev,
-        { id: `user-${Date.now()}`, src: filename }
+        { id: `user-${Date.now()}`, src: base64Data, name: file.name }
       ]);
     } catch (err) {
       alert('Failed to upload decoration.');
@@ -168,18 +168,19 @@ function Wall() {
   };
 
   // Always use server URL for images/wallpaper
+  // Handle image URLs - support base64 data URLs and regular URLs
   const makeImageUrl = (src) => {
     console.log('makeImageUrl called with src:', src); // Debug
     if (!src) return null;
-    if (src.startsWith('/') || src.startsWith('data:')) return src;
-    const fullUrl = `${config.apiUrl}/uploads/${src}`;
-    console.log('Generated URL:', fullUrl); // Debug
-    return fullUrl;
+    // If it's already a data URL or starts with /, return as is
+    if (src.startsWith('data:') || src.startsWith('/')) return src;
+    // For any other case, return as is (no uploads directory needed)
+    return src;
   };
 
   const wallStyle = {
     backgroundColor: wallColor,
-    backgroundImage: wallpaper ? `url(${makeImageUrl(wallpaper)})` : "none",
+    backgroundImage: wallpaper ? `url(${wallpaper})` : "none", // wallpaper is already base64 data URL
     backgroundSize: "cover",
     backgroundPosition: "center",
     height: wallHeight + "px",
@@ -418,28 +419,43 @@ function Wall() {
 
   // At the top of the Wall function, get the user's profile photo from localStorage (if available)
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-      const profilePhoto = userInfo.profile_photo ? `${config.apiUrl}/uploads/${userInfo.profile_photo}` : null;
+      const profilePhoto = userInfo.profile_photo || null;
 
   return (
     <>
-      <div className="wall-header">
-        <div className="wall-header-logo">MIALTAR</div>
-        <Link
-          to="/profile"
-          className="wall-profile-avatar-link"
-          title="Go to Profile"
-        >
-          {profilePhoto ? (
-            <img
-              src={profilePhoto}
-              alt="Profile"
-              className="wall-profile-avatar"
-            />
-          ) : (
-            <div className="wall-profile-avatar wall-profile-avatar-placeholder">👤</div>
-          )}
-        </Link>
-      </div>
+      {/* Header */}
+      <header className="header">
+        <div className="container">
+          <div className="header-content">
+            <div className="logo">
+              <img src={mylogo} alt="MiAltar Logo" className="logo-image" />
+              <div className="logo-text-container">
+                <span className="logo-text">MiAltar</span>
+                <span className="logo-subtitle">Virtual Memorial</span>
+              </div>
+            </div>
+            <nav className="nav">
+              <Link to="/" className="nav-link">Home</Link>
+              <button
+                onClick={() => window.location.href = '/profile'}
+                className="profile-button-homepage"
+                title="Profile"
+                aria-label="Profile"
+              >
+                {profilePhoto ? (
+                  <img
+                    src={profilePhoto}
+                    alt="Profile"
+                    className="profile-photo-homepage"
+                  />
+                ) : (
+                  <span className="profile-placeholder-homepage">👤</span>
+                )}
+              </button>
+            </nav>
+          </div>
+        </div>
+      </header>
       {/* Decoration Palette full width below header */}
       <div className="horizontal-palette-section horizontal-palette-fullwidth">
         <h4 className="section-title">Decoration Palette</h4>

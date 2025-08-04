@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import config from '../config/config';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './admindashboard.css';
+import mylogo from '../assets/mylogo.jpg';
 
 function FeatureManagement() {
   const [features, setFeatures] = useState([]);
@@ -173,145 +174,183 @@ function FeatureManagement() {
 
   if (loading) {
     return (
-      <div className="admin-dashboard">
-        <div className="admin-header" style={{ position: 'relative' }}>
-          <h1 style={{ textAlign: 'center', margin: 0 }}>Feature Management</h1>
-          <button 
-            onClick={() => navigate('/admin')} 
-            className="back-button"
-            style={{ 
-              position: 'absolute', 
-              top: 8, 
-              right: 0, 
-              background: '#1976d2', 
-              color: '#fff', 
-              border: 'none', 
-              borderRadius: 6, 
-              padding: '8px 18px', 
-              fontWeight: 600, 
-              cursor: 'pointer' 
-            }}
-          >
-            ← Back to Admin
-          </button>
-        </div>
-        <div className="loading-message">Loading features...</div>
+      <div className="admin-dashboard-flex">
+        {/* Header */}
+        <header className="header">
+          <div className="container">
+            <div className="header-content">
+              <div className="logo">
+                <img src={mylogo} alt="MiAltar Logo" className="logo-image" />
+                <div className="logo-text-container">
+                  <span className="logo-text">MiAltar</span>
+                  <span className="logo-subtitle">Virtual Memorial</span>
+                </div>
+              </div>
+              <div className="nav-section">
+                <nav className="nav">
+                  <Link to="/" className="nav-link">Home</Link>
+                 
+                </nav>
+                <button
+                  className="profile-icon-btn"
+                  title="Go to Profile"
+                  onClick={() => navigate('/profile')}
+                >
+                  <span role="img" aria-label="profile">👤</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="admin-dashboard-main">
+          <div className="loading-message">Loading features...</div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="admin-dashboard" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', minHeight: '100vh' }}>
-      <div className="admin-header" style={{ position: 'relative' }}>
-        <h1 style={{ textAlign: 'center', margin: 0 }}>🎛️ Feature Management</h1>
-        <button 
-          onClick={() => navigate('/admin')} 
-          className="back-button"
-          style={{ 
-            position: 'absolute', 
-            top: 8, 
-            right: 0, 
-            background: '#1976d2', 
-            color: '#fff', 
-            border: 'none', 
-            borderRadius: 6, 
-            padding: '8px 18px', 
-            fontWeight: 600, 
-            cursor: 'pointer' 
-          }}
-        >
-          ← Back to Admin
-        </button>
-      </div>
-
-      <div className="feature-management-container">
-        <div className="feature-management-header">
-          <p className="feature-description">
-            Control which features are available to free and premium users. 
-            Changes take effect immediately for all users.
-          </p>
-          
-          {message && (
-            <div className={`message ${message.includes('✅') ? 'success' : message.includes('❌') ? 'error' : 'info'}`}>
-              {message}
-            </div>
-          )}
-
-          <div className="feature-actions">
-            <button 
-              onClick={saveChanges} 
-              disabled={saving || !hasChanges()}
-              className="save-button"
-            >
-              {saving ? '💾 Saving...' : '💾 Save Changes'}
-            </button>
-            <button 
-              onClick={resetChanges} 
-              disabled={!hasChanges()}
-              className="reset-button"
-            >
-              🔄 Reset Changes
-            </button>
-          </div>
-        </div>
-
-        <div className="feature-categories">
-          {Object.entries(groupedFeatures).map(([category, categoryFeatures]) => (
-            <div key={category} className="feature-category">
-              <h3 className="category-title">{category}</h3>
-              <div className="features-grid">
-                {categoryFeatures.map(feature => (
-                  <div key={feature.id} className="feature-card">
-                    <div className="feature-header">
-                      <span className="feature-icon">{feature.icon}</span>
-                      <div className="feature-info">
-                        <h4 className="feature-label">{feature.label}</h4>
-                        <p className="feature-description">{feature.description}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="feature-toggles">
-                      <div className="toggle-group">
-                        <label className="toggle-label">
-                          <span className="toggle-text">Free Users</span>
-                          <input
-                            type="checkbox"
-                            checked={feature.is_free}
-                            onChange={(e) => updateFeature(feature.id, 'is_free', e.target.checked)}
-                            className="toggle-checkbox"
-                          />
-                          <span className="toggle-slider"></span>
-                        </label>
-                      </div>
-                      
-                      <div className="toggle-group">
-                        <label className="toggle-label">
-                          <span className="toggle-text">Premium Users</span>
-                          <input
-                            type="checkbox"
-                            checked={feature.is_premium}
-                            onChange={(e) => updateFeature(feature.id, 'is_premium', e.target.checked)}
-                            className="toggle-checkbox"
-                          />
-                          <span className="toggle-slider"></span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className="feature-status">
-                      <span className={`status-badge ${feature.is_free ? 'free' : ''} ${feature.is_premium ? 'premium' : ''}`}>
-                        {feature.is_free && feature.is_premium ? 'Both' : 
-                         feature.is_free ? 'Free Only' : 
-                         feature.is_premium ? 'Premium Only' : 'Disabled'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+    <div className="admin-dashboard-flex">
+      {/* Header */}
+      <header className="header">
+        <div className="container">
+          <div className="header-content">
+            <div className="logo">
+              <img src={mylogo} alt="MiAltar Logo" className="logo-image" />
+              <div className="logo-text-container">
+                <span className="logo-text">MiAltar</span>
+                <span className="logo-subtitle">Virtual Memorial</span>
               </div>
             </div>
-          ))}
+            <div className="nav-section">
+              <nav className="nav">
+                <Link to="/" className="nav-link">Home</Link>
+                
+              </nav>
+              <button
+                className="profile-icon-btn"
+                title="Go to Profile"
+                onClick={() => navigate('/profile')}
+              >
+                <span role="img" aria-label="profile">👤</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
+
+      <main className="admin-dashboard-main">
+        <div className="feature-management-container">
+          <div className="feature-management-header">
+            <h1 style={{ textAlign: 'center', margin: '0 0 20px 0', color: '#1e3a8a', fontSize: '2rem', fontWeight: '700' }}>🎛️ Feature Management</h1>
+            <button 
+              onClick={() => navigate('/admin')} 
+              className="back-button"
+              style={{ 
+                position: 'absolute', 
+                top: 20, 
+                right: 20, 
+                background: '#1e3a8a', 
+                color: '#fff', 
+                border: 'none', 
+                borderRadius: 8, 
+                padding: '10px 20px', 
+                fontWeight: 600, 
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(30, 58, 138, 0.3)'
+              }}
+            >
+              ← Back to Admin
+            </button>
+
+            <p className="feature-description">
+              Control which features are available to free and premium users. 
+              Changes take effect immediately for all users.
+            </p>
+            
+            {message && (
+              <div className={`message ${message.includes('✅') ? 'success' : message.includes('❌') ? 'error' : 'info'}`}>
+                {message}
+              </div>
+            )}
+
+            <div className="feature-actions">
+              <button 
+                onClick={saveChanges} 
+                disabled={saving || !hasChanges()}
+                className="save-button"
+              >
+                {saving ? '💾 Saving...' : '💾 Save Changes'}
+              </button>
+              <button 
+                onClick={resetChanges} 
+                disabled={!hasChanges()}
+                className="reset-button"
+              >
+                🔄 Reset Changes
+              </button>
+            </div>
+          </div>
+
+          <div className="feature-categories">
+            {Object.entries(groupedFeatures).map(([category, categoryFeatures]) => (
+              <div key={category} className="feature-category">
+                <h3 className="category-title">{category}</h3>
+                <div className="features-grid">
+                  {categoryFeatures.map(feature => (
+                    <div key={feature.id} className="feature-card">
+                      <div className="feature-header">
+                        <span className="feature-icon">{feature.icon}</span>
+                        <div className="feature-info">
+                          <h4 className="feature-label">{feature.label}</h4>
+                          <p className="feature-description">{feature.description}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="feature-toggles">
+                        <div className="toggle-group">
+                          <label className="toggle-label">
+                            <span className="toggle-text">Free Users</span>
+                            <input
+                              type="checkbox"
+                              checked={feature.is_free}
+                              onChange={(e) => updateFeature(feature.id, 'is_free', e.target.checked)}
+                              className="toggle-checkbox"
+                            />
+                            <span className="toggle-slider"></span>
+                          </label>
+                        </div>
+                        
+                        <div className="toggle-group">
+                          <label className="toggle-label">
+                            <span className="toggle-text">Premium Users</span>
+                            <input
+                              type="checkbox"
+                              checked={feature.is_premium}
+                              onChange={(e) => updateFeature(feature.id, 'is_premium', e.target.checked)}
+                              className="toggle-checkbox"
+                            />
+                            <span className="toggle-slider"></span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <div className="feature-status">
+                        <span className={`status-badge ${feature.is_free ? 'free' : ''} ${feature.is_premium ? 'premium' : ''}`}>
+                          {feature.is_free && feature.is_premium ? 'Both' : 
+                           feature.is_free ? 'Free Only' : 
+                           feature.is_premium ? 'Premium Only' : 'Disabled'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

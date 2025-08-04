@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import config from '../config/config';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './admindashboard.css';
 import UserManagement from './UserManagement';
 import AltarManagement from './AltarManagement';
 import PremiumManagement from './PremiumManagement';
+import mylogo from '../assets/mylogo.jpg';
 
  function AdminDashboard() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ import PremiumManagement from './PremiumManagement';
       navigate('/wall');
     }
     if (userInfo && userInfo.profile_photo) {
-      setProfilePhoto(`${config.apiUrl}/uploads/${userInfo.profile_photo}`);
+              setProfilePhoto(userInfo.profile_photo);
     }
     
     // Fetch dashboard statistics
@@ -120,26 +121,35 @@ import PremiumManagement from './PremiumManagement';
   return (
     <div className="admin-dashboard-flex">
       {/* Header */}
-      <header className="admin-header">
+      <header className="header">
         <div className="container">
           <div className="header-content">
             <div className="logo">
-              <span className="logo-text">MiAltar</span>
-              <span className="logo-subtitle">Virtual Memorial</span>
+              <img src={mylogo} alt="MiAltar Logo" className="logo-image" />
+              <div className="logo-text-container">
+                <span className="logo-text">MiAltar</span>
+                <span className="logo-subtitle">Virtual Memorial</span>
+              </div>
+            </div>
+            <div className="nav-section">
+              <nav className="nav">
+                <Link to="/" className="nav-link">Home</Link>
+                
+              </nav>
+              <button
+                className="profile-icon-btn"
+                title="Go to Profile"
+                onClick={() => navigate('/profile')}
+              >
+                {profilePhoto ? (
+                  <img src={profilePhoto} alt="Profile" />
+                ) : (
+                  <span role="img" aria-label="profile">👤</span>
+                )}
+              </button>
             </div>
           </div>
         </div>
-        <button
-          className="admin-profile-icon-btn"
-          title="Go to Profile"
-          onClick={() => navigate('/profile')}
-        >
-          {profilePhoto ? (
-            <img src={profilePhoto} alt="Profile" style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary-color)', boxShadow: '0 2px 8px rgba(102, 126, 234, 0.2)' }} />
-          ) : (
-            <span role="img" aria-label="profile">👤</span>
-          )}
-        </button>
       </header>
       
       <div className="admin-dashboard-content">

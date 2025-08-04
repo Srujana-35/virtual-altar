@@ -10,22 +10,9 @@ const config = require('../config/config');
 
 const router = express.Router();
 
-// Configure multer for profile photo uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = `${config.upload.path}/`;
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configure multer for memory storage (for base64 conversion)
 const upload = multer({
-  storage: storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: config.upload.maxFileSize },
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
@@ -246,23 +233,23 @@ router.put('/edit-username', verifyToken, async (req, res) => {
   }
 });
 
-// Upload profile photo
+// Upload profile photo as base64
 router.post('/upload-profile-photo', verifyToken, upload.single('photo'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
     const userId = req.user.userId;
-    // Remove old photo if exists
-    const [users] = await db.execute('SELECT profile_photo FROM users WHERE id = ?', [userId]);
-    if (users.length && users[0].profile_photo) {
-      const oldPath = path.join('uploads', users[0].profile_photo);
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-    }
-    // Save new filename
-    await db.execute('UPDATE users SET profile_photo = ? WHERE id = ?', [req.file.filename, userId]);
-    res.json({ message: 'Profile photo uploaded', filename: req.file.filename });
+    
+    // Convert file to base64
+    const base64Data = req.file.buffer.toString('base64');
+    const dataUrl = `data:${req.file.mimetype};base64,${base64Data}`;
+    
+    // Save base64 data to database
+    await db.execute('UPDATE users SET profile_photo = ? WHERE id = ?', [dataUrl, userId]);
+    res.json({ message: 'Profile photo uploaded', profile_photo: dataUrl });
   } catch (error) {
+    console.error('Profile photo upload error:', error);
     res.status(500).json({ error: 'Failed to upload profile photo' });
   }
 });
@@ -273,8 +260,7 @@ router.delete('/delete-profile-photo', verifyToken, async (req, res) => {
     const userId = req.user.userId;
     const [users] = await db.execute('SELECT profile_photo FROM users WHERE id = ?', [userId]);
     if (users.length && users[0].profile_photo) {
-      const filePath = path.join('uploads', users[0].profile_photo);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      // Just set to NULL since it's base64 data in database
       await db.execute('UPDATE users SET profile_photo = NULL WHERE id = ?', [userId]);
       res.json({ message: 'Profile photo deleted' });
     } else {

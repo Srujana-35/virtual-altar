@@ -1,0 +1,432 @@
+/* Billing History Page Styles */
+.billing-history-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 25%, #60a5fa 50%, #93c5fd 75%, #dbeafe 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.billing-history-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    /* Diagonal stripes */
+    linear-gradient(45deg, transparent 40%, rgba(59, 130, 246, 0.15) 45%, transparent 50%),
+    linear-gradient(-45deg, transparent 30%, rgba(30, 58, 138, 0.1) 35%, transparent 40%),
+    linear-gradient(30deg, transparent 25%, rgba(59, 130, 246, 0.08) 30%, transparent 35%),
+    linear-gradient(-30deg, transparent 60%, rgba(30, 58, 138, 0.12) 65%, transparent 70%),
+    /* Horizontal stripes */
+    linear-gradient(90deg, transparent 20%, rgba(59, 130, 246, 0.1) 25%, transparent 30%),
+    linear-gradient(90deg, transparent 70%, rgba(30, 58, 138, 0.08) 75%, transparent 80%),
+    /* Vertical stripes */
+    linear-gradient(0deg, transparent 15%, rgba(59, 130, 246, 0.12) 20%, transparent 25%),
+    linear-gradient(0deg, transparent 85%, rgba(30, 58, 138, 0.1) 90%, transparent 95%),
+    /* Radial gradients for depth */
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(30, 58, 138, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  z-index: 1;
+  animation: stripeShift 15s ease-in-out infinite;
+}
+
+/* Additional geometric patterns */
+.billing-history-page::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    /* Triangle patterns */
+    linear-gradient(45deg, transparent 45%, rgba(59, 130, 246, 0.05) 50%, transparent 55%),
+    linear-gradient(-45deg, transparent 35%, rgba(30, 58, 138, 0.08) 40%, transparent 45%),
+    /* Zigzag lines */
+    linear-gradient(90deg, transparent 10%, rgba(59, 130, 246, 0.1) 12%, transparent 14%),
+    linear-gradient(90deg, transparent 86%, rgba(30, 58, 138, 0.08) 88%, transparent 90%),
+    /* Cross patterns */
+    linear-gradient(45deg, transparent 65%, rgba(59, 130, 246, 0.06) 70%, transparent 75%),
+    linear-gradient(-45deg, transparent 25%, rgba(30, 58, 138, 0.04) 30%, transparent 35%);
+  z-index: 1;
+  animation: patternFloat 20s ease-in-out infinite;
+}
+
+/* Header Styles */
+.header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 16px 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  transition: all 0.3s ease-in-out;
+}
+
+
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.logo-text {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: 1px;
+}
+
+.logo-subtitle {
+  font-size: 0.8rem;
+  color: rgba(30, 58, 138, 0.8);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  margin-top: -2px;
+}
+
+.nav-section {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.nav {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-link {
+  color: rgba(30, 58, 138, 0.9);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease-in-out;
+  padding: 8px 16px;
+  border-radius: 8px;
+  letter-spacing: 0.5px;
+  position: relative;
+}
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #60a5fa 0%, #3b82f6 100%);
+  transition: all 0.3s ease-in-out;
+  transform: translateX(-50%);
+}
+
+.nav-link:hover {
+  color: #1e3a8a;
+  background: rgba(30, 58, 138, 0.1);
+  transform: translateY(-2px);
+}
+
+.nav-link:hover::before {
+  width: 80%;
+}
+
+.profile-icon-btn {
+  background: rgba(30, 58, 138, 0.1);
+  color: #1e3a8a;
+  border: 1px solid rgba(30, 58, 138, 0.2);
+  padding: 12px;
+  border-radius: 50%;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  width: 48px;
+  height: 48px;
+}
+
+.profile-icon-btn:hover {
+  background: rgba(30, 58, 138, 0.2);
+  border-color: rgba(30, 58, 138, 0.3);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profile-icon-btn img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.profile-icon-btn span {
+  font-size: 1.5rem;
+}
+
+/* Main Content */
+.billing-main {
+  padding: 120px 0 60px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.billing-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.billing-hero {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.billing-hero-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 24px;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+}
+
+.billing-hero-title .highlight {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #e0f2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gentleGlow 3s ease-in-out infinite;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.billing-hero-subtitle {
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Content Card */
+.billing-content-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.1),
+    0 8px 32px rgba(30, 58, 138, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: gentleFloat 6s ease-in-out infinite;
+}
+
+.billing-content-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s ease-in-out;
+}
+
+/* Loading, Error, and Empty States */
+.billing-loading,
+.billing-error,
+.billing-empty {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 40px 20px;
+  border-radius: 16px;
+  transition: all 0.3s ease-in-out;
+}
+
+.billing-loading {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.billing-error {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.billing-empty {
+  color: #6b7280;
+  background: rgba(107, 114, 128, 0.1);
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+/* Table Styles */
+.billing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.billing-table thead {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+}
+
+.billing-table th {
+  color: white;
+  font-weight: 700;
+  padding: 20px 16px;
+  text-align: left;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.billing-table tbody tr {
+  transition: all 0.3s ease-in-out;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.billing-table tbody tr:hover {
+  background: rgba(59, 130, 246, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.billing-table td {
+  padding: 16px;
+  color: #374151;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.billing-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .billing-page-container {
+    padding: 0 20px;
+  }
+  
+  .billing-content-card {
+    padding: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .billing-main {
+    padding: 100px 0 40px 0;
+  }
+  
+  .billing-hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .billing-hero-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .billing-content-card {
+    padding: 24px;
+  }
+  
+  .billing-table {
+    font-size: 0.9rem;
+  }
+  
+  .billing-table th,
+  .billing-table td {
+    padding: 12px 8px;
+  }
+  
+  .header-content {
+    padding: 0 16px;
+  }
+  
+  .nav {
+    gap: 1rem;
+  }
+  
+  .nav-link {
+    font-size: 0.9rem;
+    padding: 6px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .billing-hero-title {
+    font-size: 2rem;
+  }
+  
+  .billing-content-card {
+    padding: 20px;
+  }
+  
+  .billing-table {
+    font-size: 0.8rem;
+  }
+  
+  .billing-table th,
+  .billing-table td {
+    padding: 8px 6px;
+  }
+}
+
+/* Animations */
+@keyframes stripeShift {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(-10px) translateY(-5px); }
+  50% { transform: translateX(5px) translateY(-10px); }
+  75% { transform: translateX(-5px) translateY(5px); }
+}
+
+@keyframes patternFloat {
+  0%, 100% { transform: translateX(0) translateY(0) rotate(0deg); }
+  33% { transform: translateX(10px) translateY(-10px) rotate(1deg); }
+  66% { transform: translateX(-5px) translateY(5px) rotate(-1deg); }
+}
+
+@keyframes gentleGlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+} 

@@ -5,6 +5,7 @@ import './profilepage.css';
 import './pages.css';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaCamera, FaTrashAlt, FaCog, FaUserEdit, FaExclamationTriangle, FaCrown } from 'react-icons/fa';
+import mylogo from '../assets/mylogo.jpg';
 
 const SETTINGS_SECTIONS = [
   { key: 'profile', label: 'Edit Profile', icon: '👤' },
@@ -44,7 +45,7 @@ export default function ProfilePage() {
       const parsed = JSON.parse(storedUserInfo);
       setUserInfo(parsed);
       if (parsed.profile_photo) {
-        setProfileImage(`${config.apiUrl}/uploads/${parsed.profile_photo}`);
+        setProfileImage(parsed.profile_photo);
       }
     }
     // Fetch premium status
@@ -116,11 +117,13 @@ export default function ProfilePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to upload photo');
-      // Update state and localStorage
-      setProfileImage(`${config.apiUrl}/uploads/${data.filename}`);
-      const newUserInfo = { ...userInfo, profile_photo: data.filename };
-      setUserInfo(newUserInfo);
-      localStorage.setItem('userInfo', JSON.stringify(newUserInfo));
+      // Update state and localStorage with base64 data
+      if (data.profile_photo) {
+        setProfileImage(data.profile_photo);
+        const newUserInfo = { ...userInfo, profile_photo: data.profile_photo };
+        setUserInfo(newUserInfo);
+        localStorage.setItem('userInfo', JSON.stringify(newUserInfo));
+      }
     } catch (err) {
       alert(err.message || 'Failed to upload photo');
     } finally {
@@ -164,8 +167,11 @@ export default function ProfilePage() {
         <div className="container">
           <div className="header-content">
             <div className="logo">
-              <span className="logo-text">MiAltar</span>
-              <span className="logo-subtitle">Virtual Memorial</span>
+              <img src={mylogo} alt="MiAltar Logo" className="logo-image" />
+              <div className="logo-text-container">
+                <span className="logo-text">MiAltar</span>
+                <span className="logo-subtitle">Virtual Memorial</span>
+              </div>
             </div>
             <nav className="nav">
               <Link to="/" className="nav-link">Home</Link>

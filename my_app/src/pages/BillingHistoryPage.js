@@ -1,10 +1,18 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom';
 import config from '../config/config';
+import './BillingHistoryPage.css';
+import mylogo from '../assets/mylogo.jpg';
 
 export default function BillingHistoryPage() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  // Get profile photo from localStorage
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const profilePhoto = userInfo.profile_photo || null;
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -28,42 +36,83 @@ export default function BillingHistoryPage() {
   }, []);
 
   return (
-    <div className="billing-history-page" style={{ padding: '48px 0', minHeight: '80vh' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: 32 }}>Billing History</h1>
-      <div style={{ maxWidth: 700, margin: '0 auto', background: '#fff', borderRadius: 14, boxShadow: '0 2px 16px rgba(60,60,120,0.08)', padding: 32 }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', color: '#888', fontSize: 18 }}>Loading...</div>
-        ) : error ? (
-          <div style={{ textAlign: 'center', color: 'red', fontSize: 18 }}>{error}</div>
-        ) : history.length === 0 ? (
-          <div style={{ textAlign: 'center', color: '#888', fontSize: 18 }}>No billing history found.</div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 17 }}>
-            <thead>
-              <tr style={{ background: '#f5f7fa' }}>
-                <th style={{ padding: '12px 8px', borderBottom: '2px solid #e3e7fa', textAlign: 'left' }}>Plan</th>
-                <th style={{ padding: '12px 8px', borderBottom: '2px solid #e3e7fa', textAlign: 'left' }}>Amount</th>
-                <th style={{ padding: '12px 8px', borderBottom: '2px solid #e3e7fa', textAlign: 'left' }}>Source</th>
-                <th style={{ padding: '12px 8px', borderBottom: '2px solid #e3e7fa', textAlign: 'left' }}>Start Date</th>
-                <th style={{ padding: '12px 8px', borderBottom: '2px solid #e3e7fa', textAlign: 'left' }}>End Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((row) => (
-                <tr key={row.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                  <td style={{ padding: '10px 8px' }}>{row.plan_type}</td>
-                  <td style={{ padding: '10px 8px' }}>{row.amount}</td>
-                  <td style={{ padding: '10px 8px' }}>
-                    {row.source === 'user' ? 'Purchased by User' : row.source === 'admin' ? 'Granted by Admin' : row.source}
-                  </td>
-                  <td style={{ padding: '10px 8px' }}>{new Date(row.start_date).toLocaleString()}</td>
-                  <td style={{ padding: '10px 8px' }}>{new Date(row.end_date).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+    <div className="billing-history-page">
+      {/* Header */}
+      <header className="header">
+        <div className="container">
+          <div className="header-content">
+            <div className="logo">
+              <img src={mylogo} alt="MiAltar Logo" className="logo-image" />
+              <div className="logo-text-container">
+                <span className="logo-text">MiAltar</span>
+                <span className="logo-subtitle">Virtual Memorial</span>
+              </div>
+            </div>
+            <div className="nav-section">
+              <nav className="nav">
+                <Link to="/" className="nav-link">Home</Link>
+                
+              </nav>
+              <button
+                className="profile-icon-btn"
+                title="Go to Profile"
+                onClick={() => navigate('/profile')}
+              >
+                {profilePhoto ? (
+                  <img src={profilePhoto} alt="Profile" />
+                ) : (
+                  <span role="img" aria-label="profile">👤</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="billing-main">
+        <div className="billing-page-container">
+          <section className="billing-hero">
+            <h1 className="billing-hero-title">Billing <span className="highlight">History</span></h1>
+            <p className="billing-hero-subtitle">View your premium subscription history and payment details</p>
+          </section>
+          
+          <div className="billing-content-card">
+            {loading ? (
+              <div className="billing-loading">Loading...</div>
+            ) : error ? (
+              <div className="billing-error">{error}</div>
+            ) : history.length === 0 ? (
+              <div className="billing-empty">No billing history found.</div>
+            ) : (
+              <table className="billing-table">
+                <thead>
+                  <tr>
+                    <th>Plan</th>
+                    <th>Amount</th>
+                    <th>Source</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.map((row) => (
+                    <tr key={row.id}>
+                      <td>{row.plan_type}</td>
+                      <td>{row.amount}</td>
+                      <td>
+                        {row.source === 'user' ? 'Purchased by User' : row.source === 'admin' ? 'Granted by Admin' : row.source}
+                      </td>
+                      <td>{new Date(row.start_date).toLocaleString()}</td>
+                      <td>{new Date(row.end_date).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 } 

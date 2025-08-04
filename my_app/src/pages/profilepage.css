@@ -2,7 +2,7 @@
 
 .profile-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 25%, #60a5fa 50%, #93c5fd 75%, #dbeafe 100%);
   position: relative;
   overflow: hidden;
 }
@@ -14,8 +14,46 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background: 
+    /* Diagonal stripes */
+    linear-gradient(45deg, transparent 40%, rgba(59, 130, 246, 0.15) 45%, transparent 50%),
+    linear-gradient(-45deg, transparent 30%, rgba(30, 58, 138, 0.1) 35%, transparent 40%),
+    linear-gradient(30deg, transparent 25%, rgba(59, 130, 246, 0.08) 30%, transparent 35%),
+    linear-gradient(-30deg, transparent 60%, rgba(30, 58, 138, 0.12) 65%, transparent 70%),
+    /* Horizontal stripes */
+    linear-gradient(90deg, transparent 20%, rgba(59, 130, 246, 0.1) 25%, transparent 30%),
+    linear-gradient(90deg, transparent 70%, rgba(30, 58, 138, 0.08) 75%, transparent 80%),
+    /* Vertical stripes */
+    linear-gradient(0deg, transparent 15%, rgba(59, 130, 246, 0.12) 20%, transparent 25%),
+    linear-gradient(0deg, transparent 85%, rgba(30, 58, 138, 0.1) 90%, transparent 95%),
+    /* Radial gradients for depth */
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(30, 58, 138, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
   z-index: 1;
+  animation: stripeShift 15s ease-in-out infinite;
+}
+
+/* Additional geometric patterns for profile page */
+.profile-page::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    /* Triangle patterns */
+    linear-gradient(45deg, transparent 45%, rgba(59, 130, 246, 0.05) 50%, transparent 55%),
+    linear-gradient(-45deg, transparent 35%, rgba(30, 58, 138, 0.08) 40%, transparent 45%),
+    /* Zigzag lines */
+    linear-gradient(90deg, transparent 10%, rgba(59, 130, 246, 0.1) 12%, transparent 14%),
+    linear-gradient(90deg, transparent 86%, rgba(30, 58, 138, 0.08) 88%, transparent 90%),
+    /* Cross patterns */
+    linear-gradient(45deg, transparent 65%, rgba(59, 130, 246, 0.06) 70%, transparent 75%),
+    linear-gradient(-45deg, transparent 25%, rgba(30, 58, 138, 0.04) 30%, transparent 35%);
+  z-index: 1;
+  animation: patternFloat 20s ease-in-out infinite;
 }
 
 .profile-main {
@@ -23,12 +61,6 @@
   position: relative;
   z-index: 2;
 }
-
-
-
-
-
-
 
 .premium-badge {
   display: inline-flex;
@@ -41,6 +73,7 @@
   font-weight: 600;
   font-size: 0.9rem;
   box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+  animation: gentleGlow 3s ease-in-out infinite;
 }
 
 .premium-icon {
@@ -55,29 +88,31 @@
 .profile-content {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 48px;
-  max-width: 350px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.1),
+    0 8px 32px rgba(30, 58, 138, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 32px;
+  max-width: 400px;
   margin: 0 auto;
   position: relative;
   overflow: hidden;
+  animation: gentleFloat 6s ease-in-out infinite;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.profile-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  margin-bottom: 16px;
-  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-align: center;
+.profile-content:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 
+    0 32px 80px rgba(0, 0, 0, 0.15),
+    0 12px 40px rgba(30, 58, 138, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .profile-content::before {
@@ -87,7 +122,38 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.profile-content::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(30, 58, 138, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.profile-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #1e3a8a;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 2;
+  animation: softPulse 4s ease-in-out infinite;
 }
 
 /* Profile Photo Section */
@@ -96,6 +162,8 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  position: relative;
+  z-index: 2;
 }
 
 .profile-photo-container {
@@ -103,6 +171,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 8px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 58, 138, 0.05) 100%);
+  border-radius: 50%;
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(59, 130, 246, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-photo-container:hover {
+  transform: scale(1.05);
+  box-shadow: 
+    0 12px 35px rgba(0, 0, 0, 0.2),
+    0 6px 16px rgba(59, 130, 246, 0.3);
 }
 
 .profile-photo,
@@ -112,63 +194,99 @@
   border-radius: 50%;
   object-fit: cover;
   border: 4px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
-}
-
-.profile-photo-placeholder {
-  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease-in-out;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #999;
+  color: #64748b;
+  position: relative;
 }
 
 .profile-photo:hover,
 .profile-photo-placeholder:hover {
-  transform: scale(1.05);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow: 
+    0 6px 16px rgba(59, 130, 246, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .profile-photo-upload {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  background: var(--primary-color);
+  bottom: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%);
   color: white;
-  width: 36px;
-  height: 36px;
+  border: none;
   border-radius: 50%;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 
+    0 4px 12px rgba(59, 130, 246, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
 .profile-photo-upload:hover {
-  background: var(--accent-color);
+  background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
   transform: scale(1.1);
+  box-shadow: 
+    0 6px 16px rgba(59, 130, 246, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 .delete-photo-btn {
-  margin-top: 8px;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 
+    0 4px 12px rgba(220, 38, 38, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.delete-photo-btn:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 16px rgba(220, 38, 38, 0.4),
+    0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 .upload-status {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 8px 12px;
+  background: rgba(248, 250, 252, 0.8);
+  border-radius: 8px;
+  border: 1px solid rgba(226, 232, 240, 0.5);
 }
 
 .loading-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid #f3f3f3;
-  border-top: 2px solid var(--primary-color);
+  border: 2px solid #e2e8f0;
+  border-top: 2px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -178,102 +296,370 @@
   100% { transform: rotate(360deg); }
 }
 
-/* User Information Section */
 .user-info-section {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  position: relative;
+  z-index: 2;
 }
 
 .info-grid {
-  display: grid;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .info-item {
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.9) 0%, rgba(241, 245, 249, 0.8) 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.info-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .info-item:hover {
-  background: rgba(255, 255, 255, 0.95);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+  border-color: rgba(59, 130, 246, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 
+    0 8px 25px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.info-item:hover::before {
+  opacity: 1;
 }
 
 .info-label {
-  display: block;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-bottom: 4px;
 }
 
 .info-value {
-  display: block;
   font-size: 1.1rem;
+  color: #1e293b;
   font-weight: 600;
-  color: var(--text-primary);
+  line-height: 1.4;
 }
 
 .admin-dashboard-btn {
-  margin-top: 16px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 
+    0 4px 12px rgba(59, 130, 246, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Danger Zone */
+.admin-dashboard-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease-in-out;
+}
+
+.admin-dashboard-btn:hover {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  transform: translateY(-3px);
+  box-shadow: 
+    0 8px 25px rgba(59, 130, 246, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.admin-dashboard-btn:hover::before {
+  left: 100%;
+}
+
 .danger-zone {
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   padding-top: 24px;
-  margin-top: 24px;
+  border-top: 2px solid rgba(226, 232, 240, 0.6);
+  position: relative;
+  z-index: 2;
+}
+
+.danger-zone::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+  opacity: 0.3;
 }
 
 .delete-account-btn {
-  width: 100%;
-  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
   border: none;
-  transition: all 0.3s ease;
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 
+    0 4px 12px rgba(220, 38, 38, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.delete-account-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease-in-out;
 }
 
 .delete-account-btn:hover {
-  background: linear-gradient(135deg, #c82333 0%, #dc3545 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(220, 53, 69, 0.3);
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  transform: translateY(-3px);
+  box-shadow: 
+    0 8px 25px rgba(220, 38, 38, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Settings Button */
+.delete-account-btn:hover::before {
+  left: 100%;
+}
+
 .profile-settings-btn {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #3b82f6 !important;
+  color: white !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  padding: 10px 18px !important;
+  border-radius: 12px !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease-in-out !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  backdrop-filter: blur(15px) !important;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
 }
 
 .profile-settings-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background: #2563eb !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
 }
 
-/* Responsive Design */
+/* Settings dropdown menu styling */
+.settings-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  padding: 8px 0;
+  min-width: 200px;
+  z-index: 1000;
+  animation: slideIn 0.3s ease-out;
+}
+
+.settings-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: 20px;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid rgba(255, 255, 255, 0.95);
+}
+
+.settings-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  color: #1e293b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-align: left;
+}
+
+.settings-dropdown-item:hover,
+.settings-dropdown-item:focus {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1e3a8a;
+  transform: translateX(4px);
+}
+
+.settings-dropdown-item span[role="img"] {
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+  transition: all 0.2s ease-in-out;
+}
+
+.settings-dropdown-item:hover span[role="img"],
+.settings-dropdown-item:focus span[role="img"] {
+  transform: scale(1.1);
+}
+
+.settings-dropdown-divider {
+  height: 1px;
+  background: rgba(226, 232, 240, 0.5);
+  margin: 8px 0;
+}
+
+.logout-dropdown-item {
+  color: #dc2626;
+  border-top: 1px solid rgba(226, 232, 240, 0.5);
+  margin-top: 8px;
+  padding-top: 12px;
+}
+
+.logout-dropdown-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 1px;
+  background: rgba(226, 232, 240, 0.5);
+}
+
+.logout-dropdown-item:hover {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.logout-dropdown-item span[role="img"] {
+  color: #dc2626;
+}
+
+.logout-dropdown-item:hover span[role="img"] {
+  color: #b91c1c;
+}
+
+.create-altar-dropdown-item {
+  color: #059669;
+}
+
+.create-altar-dropdown-item:hover {
+  background: rgba(5, 150, 105, 0.1);
+  color: #047857;
+}
+
+.get-prime-dropdown-item {
+  color: #d97706;
+}
+
+.get-prime-dropdown-item:hover {
+  background: rgba(217, 119, 6, 0.1);
+  color: #b45309;
+}
+
+.get-prime-dropdown-item span[role="img"] {
+  color: #d97706;
+}
+
+.get-prime-dropdown-item:hover span[role="img"] {
+  color: #b45309;
+}
+
+.billing-history-dropdown-item {
+  color: #7c3aed;
+}
+
+.billing-history-dropdown-item:hover {
+  background: rgba(124, 58, 237, 0.1);
+  color: #6d28d9;
+}
+
+.billing-history-dropdown-item span[role="img"] {
+  color: #7c3aed;
+}
+
+.billing-history-dropdown-item:hover span[role="img"] {
+  color: #6d28d9;
+}
+
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (max-width: 768px) {
   .profile-main {
-    padding: 100px 20px 40px 20px;
+    padding: 100px 0 40px 0;
   }
   
-  .profile-card {
-    padding: 32px 24px;
+  .profile-content {
+    margin: 0 16px;
+    padding: 24px 20px;
+    max-width: 300px;
   }
   
   .profile-title {
@@ -287,21 +673,22 @@
   }
   
   .info-grid {
-    gap: 16px;
+    gap: 12px;
   }
   
   .info-item {
-    padding: 16px;
+    padding: 12px;
   }
 }
 
 @media (max-width: 480px) {
-  .profile-card {
-    padding: 24px 20px;
+  .profile-content {
+    padding: 20px 16px;
+    max-width: 280px;
   }
   
   .profile-title {
-    font-size: 1.8rem;
+    font-size: 1.75rem;
   }
   
   .profile-photo,

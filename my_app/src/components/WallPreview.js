@@ -6,7 +6,7 @@ import config from '../config/config';
 const makeImageUrl = (src) => {
   if (!src) return null;
   if (src.startsWith("blob:") || src.startsWith("/") || src.startsWith("data:")) return src;
-  return `${config.apiUrl}/uploads/${src}`;
+  return src; // No uploads directory needed
 };
 
 export default function WallPreview({ wallData, style, className }) {
