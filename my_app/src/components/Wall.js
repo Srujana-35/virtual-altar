@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
 import { Rnd } from "react-rnd";
 import "./Wall.css";
@@ -11,6 +11,7 @@ import mylogo from '../assets/mylogo.jpg';
 
 
 function Wall() {
+  const navigate = useNavigate();
   const [images, setImages] = useState([]);
   const [decorations, setDecorations] = useState([]);
   const [wallColor, setWallColor] = useState(config.defaultWallColor);
@@ -454,7 +455,7 @@ function Wall() {
             <nav className="nav">
               <Link to="/" className="nav-link">Home</Link>
               <button
-                onClick={() => window.location.href = '/profile'}
+                onClick={() => navigate('/profile')}
                 className="profile-button-homepage"
                 title="Profile"
                 aria-label="Profile"
