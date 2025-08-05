@@ -78,9 +78,9 @@ function WallViewPage() {
       localStorage.setItem('restoreWallData', JSON.stringify(wall.wallData));
       localStorage.setItem('restoreWallId', wall.id);
       // Redirect to WallPage editor
-      window.location.href = '/wall';
+      navigate('/wall');
     }
-  }, [wall, permission]);
+  }, [wall, permission, navigate]);
 
   if (loading) return <div className="wallview-center-page">Loading...</div>;
   if (error) return <div className="wallview-center-page" style={{ color: 'red' }}>{error}</div>;
@@ -97,7 +97,7 @@ function WallViewPage() {
             onClick={() => {
               localStorage.setItem('restoreWallData', JSON.stringify(wall.wallData));
               localStorage.setItem('restoreWallId', wall.id);
-              window.location.href = '/wall';
+              navigate('/wall');
             }}
             style={{ marginTop: 24 }}
           >
