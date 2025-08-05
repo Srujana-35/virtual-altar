@@ -21,7 +21,10 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:3000',
       'https://virtual-altar-frontend.onrender.com',
-      'https://virtual-altar-frontend.onrender.com/'
+      'https://virtual-altar-frontend.onrender.com/',
+      'https://virtual-altar-frontend.render.com',
+      'https://virtual-altar-frontend.render.com/',
+      'https://virtual-altar-frontend.onrender.com'
     ];
     
     if (allowedOrigins.indexOf(origin) !== -1) {
