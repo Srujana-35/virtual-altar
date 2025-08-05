@@ -4,11 +4,17 @@
     <meta charset="utf-8">
     <title>Virtual Altar</title>
     <script>
-        // Redirect to the main app
+        // Preserve the current URL path and redirect to homepage
+        // React Router will then handle the routing to the correct page
+        var path = window.location.pathname;
+        if (path !== '/') {
+            // Store the intended path for React Router to handle
+            sessionStorage.setItem('redirectPath', path);
+        }
         window.location.href = '/';
     </script>
 </head>
 <body>
-    <p>Redirecting to Virtual Altar...</p>
+    <p>Loading Virtual Altar...</p>
 </body>
 </html> 
