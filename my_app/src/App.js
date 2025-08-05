@@ -19,15 +19,6 @@ import { FeaturesProvider } from "./hooks/useFeatures";
 import "./App.css";
 
 function App() {
-  // Handle redirect from 404.html
-  React.useEffect(() => {
-    const redirectPath = sessionStorage.getItem('redirectPath');
-    if (redirectPath) {
-      sessionStorage.removeItem('redirectPath');
-      window.location.href = redirectPath;
-    }
-  }, []);
-
   return (
     <div className="App">
       <FeaturesProvider>
