@@ -130,7 +130,7 @@ function Signup() {
                     email: mail
                 };
                 localStorage.setItem('userInfo', JSON.stringify(userInfo));
-                alert("Signup successful!");
+                alert("Signup successful! Please login to continue.");
                 navigate("/login");
             } else {
                 setOtpError(data.error || "OTP verification failed");

@@ -95,12 +95,23 @@ export const FeaturesProvider = ({ children }) => {
     fetchFeatures();
   }, []);
 
-  // Refresh features when token changes
+  // Refresh features when token changes or user logs in
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       fetchFeatures();
     }
+    
+    // Listen for login events
+    const handleUserLogin = () => {
+      fetchFeatures();
+    };
+    
+    window.addEventListener('userLoggedIn', handleUserLogin);
+    
+    return () => {
+      window.removeEventListener('userLoggedIn', handleUserLogin);
+    };
   }, []);
 
   const value = {

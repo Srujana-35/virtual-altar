@@ -114,6 +114,9 @@ export default function PremiumPage() {
       setPremiumDetails({ expiry: data.premiumExpiry, plan: data.premiumPlan });
       setSuccess(true);
       setShowDialog(false);
+      
+      // Trigger features refresh after successful premium upgrade
+      window.dispatchEvent(new CustomEvent('userLoggedIn'));
     } catch (err) {
       setError(err.message || "Upgrade failed");
     } finally {

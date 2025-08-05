@@ -30,14 +30,31 @@ function Wall() {
     {id:'garland3', src:'/decorations/garland3.png'},
   ]);
   const [currentWallId, setCurrentWallId] = useState(null);
-  const { canUseFeature, isPremium, features } = useFeatures();
+  const { canUseFeature, isPremium, features, fetchFeatures } = useFeatures();
 
-  // Debug logging
+  // Debug logging and feature refresh
   useEffect(() => {
     console.log('Wall.js - Features loaded:', features);
     console.log('Wall.js - Can use premium backgrounds:', canUseFeature('premium_backgrounds'));
     console.log('Wall.js - Is premium:', isPremium);
-  }, [features, canUseFeature, isPremium]);
+    
+    // Refresh features when component mounts to ensure latest status
+    fetchFeatures();
+  }, [features, canUseFeature, isPremium, fetchFeatures]);
+
+  // Listen for premium upgrade events
+  useEffect(() => {
+    const handlePremiumUpgrade = () => {
+      console.log('Premium upgrade detected, refreshing features...');
+      fetchFeatures();
+    };
+    
+    window.addEventListener('userLoggedIn', handlePremiumUpgrade);
+    
+    return () => {
+      window.removeEventListener('userLoggedIn', handlePremiumUpgrade);
+    };
+  }, [fetchFeatures]);
 
   // Helper to convert file to base64 string (for wall images only)
   const fileToBase64 = (file) => {

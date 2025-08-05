@@ -56,6 +56,9 @@ function Login() {
                 // Save user information (with role) to localStorage
                 localStorage.setItem('userInfo', JSON.stringify(data.user));
                 
+                // Trigger features refresh by dispatching a custom event
+                window.dispatchEvent(new CustomEvent('userLoggedIn'));
+                
                 // Redirect to intended page if present
                 const redirectPath = localStorage.getItem('redirectAfterLogin');
                 if (redirectPath) {
