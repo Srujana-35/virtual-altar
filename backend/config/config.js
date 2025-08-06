@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const config = {
   // Server Configuration
-  port: process.env.PORT || 8080,
+  port: process.env.PORT || 5000,
   nodeEnv: process.env.NODE_ENV || 'development',
   
   // Database Configuration
@@ -32,7 +32,7 @@ const config = {
   },
   
   // Frontend Configuration - Use localhost for single deployment
-  frontendUrl: 'http://localhost:8080',
+  frontendUrl: 'http://localhost:5000',
   
   // File Upload Configuration
   upload: {

@@ -1,3 +1,23 @@
+// Clear DEBUG_URL immediately to prevent path-to-regexp errors
+if (process.env.DEBUG_URL) {
+  console.log('⚠️  Found DEBUG_URL, clearing it to prevent path-to-regexp errors');
+  delete process.env.DEBUG_URL;
+}
+
+// Clear any other problematic environment variables
+const envVars = process.env;
+for (const [key, value] of Object.entries(envVars)) {
+  if (value && (
+    value.includes('git.new') ||
+    value.includes('pathToRegexpError') ||
+    key === 'DEBUG_URL' ||
+    key.includes('DEBUG')
+  )) {
+    console.log(`🗑️  Clearing problematic env var: ${key}`);
+    delete process.env[key];
+  }
+}
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
