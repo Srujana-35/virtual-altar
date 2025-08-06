@@ -116,47 +116,43 @@ app.get('/test-db', async (req, res) => {
 // API Routes with detailed error handling
 console.log('Mounting API routes...');
 
-try {
-  console.log('Mounting /api/auth...');
-  app.use('/api/auth', authRoutes.router);
-  console.log('✓ /api/auth mounted successfully');
-} catch (error) {
-  console.error('✗ Error mounting /api/auth:', error);
+// Function to safely mount routes
+function safeMountRoute(path, router, name) {
+  try {
+    console.log(`Mounting ${path}...`);
+    
+    // Validate the router before mounting
+    if (!router || typeof router !== 'function') {
+      throw new Error(`Invalid router for ${name}: ${typeof router}`);
+    }
+    
+    app.use(path, router);
+    console.log(`✓ ${path} mounted successfully`);
+    return true;
+  } catch (error) {
+    console.error(`✗ Error mounting ${path}:`, error.message);
+    console.error('Full error:', error);
+    return false;
+  }
 }
 
-try {
-  console.log('Mounting /api/wall...');
-  app.use('/api/wall', wallRoutes);
-  console.log('✓ /api/wall mounted successfully');
-} catch (error) {
-  console.error('✗ Error mounting /api/wall:', error);
+// Mount routes one by one with validation
+const routes = [
+  { path: '/api/auth', router: authRoutes.router, name: 'auth' },
+  { path: '/api/wall', router: wallRoutes, name: 'wall' },
+  { path: '/api/admin', router: adminRoutes, name: 'admin' },
+  { path: '/api/premium', router: premiumRoutes, name: 'premium' },
+  { path: '/api/features', router: featuresRoutes, name: 'features' }
+];
+
+let mountedCount = 0;
+for (const route of routes) {
+  if (safeMountRoute(route.path, route.router, route.name)) {
+    mountedCount++;
+  }
 }
 
-try {
-  console.log('Mounting /api/admin...');
-  app.use('/api/admin', adminRoutes);
-  console.log('✓ /api/admin mounted successfully');
-} catch (error) {
-  console.error('✗ Error mounting /api/admin:', error);
-}
-
-try {
-  console.log('Mounting /api/premium...');
-  app.use('/api/premium', premiumRoutes);
-  console.log('✓ /api/premium mounted successfully');
-} catch (error) {
-  console.error('✗ Error mounting /api/premium:', error);
-}
-
-try {
-  console.log('Mounting /api/features...');
-  app.use('/api/features', featuresRoutes);
-  console.log('✓ /api/features mounted successfully');
-} catch (error) {
-  console.error('✗ Error mounting /api/features:', error);
-}
-
-console.log('All API routes mounted successfully');
+console.log(`✅ Successfully mounted ${mountedCount}/${routes.length} routes`);
 
 // Serve React app for all other routes (SPA routing)
 app.get('*', (req, res) => {
