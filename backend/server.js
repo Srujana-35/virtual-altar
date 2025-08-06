@@ -2,53 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
-// Check for problematic environment variables BEFORE loading any modules
-console.log('=== Checking Environment Variables ===');
-const envVars = process.env;
-let clearedVars = [];
-
-// More comprehensive check for problematic variables
-for (const [key, value] of Object.entries(envVars)) {
-  if (value && (
-    value.includes('http://') || 
-    value.includes('https://') || 
-    value.includes('git.new') ||
-    value.includes('://') ||
-    value.includes('pathToRegexpError') ||
-    value.includes('DEBUG_URL') ||
-    key === 'DEBUG_URL' ||
-    key.includes('DEBUG')
-  )) {
-    console.log(`⚠️  WARNING: Environment variable ${key} contains URL: ${value}`);
-    // Clear problematic environment variables
-    delete process.env[key];
-    clearedVars.push(key);
-    console.log(`🗑️  Cleared environment variable: ${key}`);
-  }
-}
-
-// Specifically check for DEBUG_URL
-if (process.env.DEBUG_URL) {
-  console.log(`⚠️  Found DEBUG_URL: ${process.env.DEBUG_URL}`);
-  delete process.env.DEBUG_URL;
-  clearedVars.push('DEBUG_URL');
-  console.log(`🗑️  Cleared DEBUG_URL`);
-}
-
-if (clearedVars.length > 0) {
-  console.log(`✅ Cleared ${clearedVars.length} problematic environment variables:`, clearedVars);
-} else {
-  console.log('✅ No problematic environment variables found');
-}
-
-// Double-check: Log all remaining environment variables that might be problematic
-console.log('=== Final Environment Variable Check ===');
-for (const [key, value] of Object.entries(process.env)) {
-  if (value && (value.includes('http') || value.includes('git.new') || value.includes('://'))) {
-    console.log(`⚠️  STILL FOUND: ${key} = ${value}`);
-  }
-}
-
 // Now load other modules
 const db = require('./models/db');
 const authRoutes = require('./routes/auth');
@@ -70,11 +23,7 @@ console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
 
 // Middleware
 app.use(cors({
-  origin: [
-    'http://localhost:5000',
-    'http://localhost:3000', // Keep for backward compatibility
-    config.frontendUrl
-  ],
+  origin: true, // Allow all origins
   credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));

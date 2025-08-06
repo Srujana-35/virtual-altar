@@ -31,8 +31,8 @@ const config = {
     pass: process.env.EMAIL_PASS || 'your_email_password'
   },
   
-  // Frontend Configuration
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5000',
+  // Frontend Configuration - Use localhost for single deployment
+  frontendUrl: 'http://localhost:5000',
   
   // File Upload Configuration
   upload: {
@@ -40,9 +40,9 @@ const config = {
     maxFileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880
   },
   
-  // CORS Configuration
+  // CORS Configuration - Allow all origins for single deployment
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5000',
+    origin: true, // Allow all origins
     credentials: true
   },
   
