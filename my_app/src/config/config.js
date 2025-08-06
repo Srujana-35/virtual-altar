@@ -1,10 +1,10 @@
 const config = {
-  // API Configuration
-  apiUrl: process.env.REACT_APP_API_URL || 'http://localhost:5000',
-  apiBaseUrl: process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api',
+  // API Configuration - For single deployment, use relative URLs
+  apiUrl: process.env.REACT_APP_API_URL || '',
+  apiBaseUrl: process.env.REACT_APP_API_BASE_URL || '/api',
   
-  // Frontend Configuration
-  frontendUrl: process.env.REACT_APP_FRONTEND_URL || 'http://localhost:5000',
+  // Frontend Configuration - For single deployment, use current domain
+  frontendUrl: process.env.REACT_APP_FRONTEND_URL || '',
   
   // Feature Flags
   enablePremium: process.env.REACT_APP_ENABLE_PREMIUM === 'true' || true,
