@@ -12,6 +12,13 @@ const app = express();
 
 const config = require('./config/config');
 
+// Log environment variables for debugging
+console.log('Environment variables loaded:');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('PORT:', process.env.PORT);
+console.log('DB_HOST:', process.env.DB_HOST ? 'SET' : 'NOT SET');
+console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
+
 // Middleware
 app.use(cors({
   origin: [
@@ -77,16 +84,50 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
-// API Routes with error handling
+// API Routes with detailed error handling
+console.log('Mounting API routes...');
+
 try {
+  console.log('Mounting /api/auth...');
   app.use('/api/auth', authRoutes.router);
-  app.use('/api/wall', wallRoutes);
-  app.use('/api/admin', adminRoutes);
-  app.use('/api/premium', premiumRoutes);
-  app.use('/api/features', featuresRoutes);
+  console.log('✓ /api/auth mounted successfully');
 } catch (error) {
-  console.error('Error mounting routes:', error);
+  console.error('✗ Error mounting /api/auth:', error);
 }
+
+try {
+  console.log('Mounting /api/wall...');
+  app.use('/api/wall', wallRoutes);
+  console.log('✓ /api/wall mounted successfully');
+} catch (error) {
+  console.error('✗ Error mounting /api/wall:', error);
+}
+
+try {
+  console.log('Mounting /api/admin...');
+  app.use('/api/admin', adminRoutes);
+  console.log('✓ /api/admin mounted successfully');
+} catch (error) {
+  console.error('✗ Error mounting /api/admin:', error);
+}
+
+try {
+  console.log('Mounting /api/premium...');
+  app.use('/api/premium', premiumRoutes);
+  console.log('✓ /api/premium mounted successfully');
+} catch (error) {
+  console.error('✗ Error mounting /api/premium:', error);
+}
+
+try {
+  console.log('Mounting /api/features...');
+  app.use('/api/features', featuresRoutes);
+  console.log('✓ /api/features mounted successfully');
+} catch (error) {
+  console.error('✗ Error mounting /api/features:', error);
+}
+
+console.log('All API routes mounted successfully');
 
 // Serve React app for all other routes (SPA routing)
 app.get('*', (req, res) => {
