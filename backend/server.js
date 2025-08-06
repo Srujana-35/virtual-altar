@@ -77,12 +77,16 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
-// API Routes
-app.use('/api/auth', authRoutes.router);
-app.use('/api/wall', wallRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/premium', premiumRoutes);
-app.use('/api/features', featuresRoutes);
+// API Routes with error handling
+try {
+  app.use('/api/auth', authRoutes.router);
+  app.use('/api/wall', wallRoutes);
+  app.use('/api/admin', adminRoutes);
+  app.use('/api/premium', premiumRoutes);
+  app.use('/api/features', featuresRoutes);
+} catch (error) {
+  console.error('Error mounting routes:', error);
+}
 
 // Serve React app for all other routes (SPA routing)
 app.get('*', (req, res) => {
@@ -91,6 +95,12 @@ app.get('*', (req, res) => {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
   res.sendFile(path.join(__dirname, '../my_app/build/index.html'));
+});
+
+// Error handling middleware
+app.use((error, req, res, next) => {
+  console.error('Server error:', error);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 app.listen(config.port, () => {
