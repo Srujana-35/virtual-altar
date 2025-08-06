@@ -19,7 +19,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "set CI=false && react-scripts build",
+    "build": "set \"CI=false\" && set \"GENERATE_SOURCEMAP=false\" && set \"DISABLE_ESLINT_PLUGIN=true\" && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -41,6 +41,6 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "https://virtual-altar-backend-znfd.onrender.com",
-  "homepage": "."
+  "proxy": "http://localhost:5000",
+  "homepage": "/"
 }

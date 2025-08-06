@@ -4,12 +4,12 @@ const config = {
   apiBaseUrl: process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api',
   
   // Frontend Configuration
-  frontendUrl: process.env.REACT_APP_FRONTEND_URL || 'http://localhost:3000',
+  frontendUrl: process.env.REACT_APP_FRONTEND_URL || 'http://localhost:5000',
   
   // Feature Flags
-  enablePremium: process.env.REACT_APP_ENABLE_PREMIUM !== 'false',
-  enableSharing: process.env.REACT_APP_ENABLE_SHARING !== 'false',
-  enableUploads: process.env.REACT_APP_ENABLE_UPLOADS !== 'false',
+  enablePremium: process.env.REACT_APP_ENABLE_PREMIUM === 'true' || true,
+  enableSharing: process.env.REACT_APP_ENABLE_SHARING === 'true' || true,
+  enableUploads: process.env.REACT_APP_ENABLE_UPLOADS === 'true' || true,
   
   // Default Values
   defaultWallHeight: parseInt(process.env.REACT_APP_DEFAULT_WALL_HEIGHT) || 600,
@@ -22,6 +22,14 @@ const config = {
     monthlyPrice: parseInt(process.env.REACT_APP_MONTHLY_PRICE) || 20,
     sixMonthsPrice: parseInt(process.env.REACT_APP_SIX_MONTHS_PRICE) || 100,
     annualPrice: parseInt(process.env.REACT_APP_ANNUAL_PRICE) || 180
+  },
+  
+  // Premium Features
+  premiumFeatures: {
+    customBackgrounds: true,
+    unlimitedDecorations: true,
+    advancedSharing: true,
+    prioritySupport: true
   },
   
   // API Endpoints

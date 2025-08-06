@@ -31,8 +31,8 @@ const config = {
     pass: process.env.EMAIL_PASS || 'your_email_password'
   },
   
-  // Frontend URL
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000',
+  // Frontend Configuration
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5000',
   
   // File Upload Configuration
   upload: {
@@ -42,7 +42,8 @@ const config = {
   
   // CORS Configuration
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000'
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5000',
+    credentials: true
   },
   
   // Premium Plan Configuration

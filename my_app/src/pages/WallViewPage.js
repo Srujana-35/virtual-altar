@@ -18,8 +18,14 @@ function WallViewPage() {
       setLoading(true);
       setError('');
       setWall(null);
+      
+      console.log('🔍 WallViewPage: Starting fetchWall');
+      console.log('🔍 WallViewPage: id =', id);
+      console.log('🔍 WallViewPage: location.pathname =', location.pathname);
+      
       // Determine if this is a private or public view based on the route
       if (location.pathname.startsWith('/wall/view/')) {
+        console.log('🔍 WallViewPage: Private share detected');
         // Private share: requires JWT
         const token = localStorage.getItem('token');
         if (!token) {
@@ -52,10 +58,14 @@ function WallViewPage() {
           setLoading(false);
         }
       } else {
+        console.log('🔍 WallViewPage: Public view detected');
+        console.log('🔍 WallViewPage: API URL =', `${config.apiBaseUrl}/wall/public/${id}`);
         // Public view
         try {
           const res = await fetch(`${config.apiBaseUrl}/wall/public/${id}`);
+          console.log('🔍 WallViewPage: API response status =', res.status);
           const data = await res.json();
+          console.log('🔍 WallViewPage: API response data =', data);
           if (res.ok && data.wall) {
             setWall(data.wall);
            
@@ -63,6 +73,7 @@ function WallViewPage() {
             setError(data.error || 'Wall not found.');
           }
         } catch (err) {
+          console.error('🔍 WallViewPage: API error =', err);
           setError('Network error.');
         } finally {
           setLoading(false);

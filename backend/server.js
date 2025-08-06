@@ -14,25 +14,11 @@ const config = require('./config/config');
 
 // Middleware
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'https://virtual-altar-frontend.onrender.com',
-      'https://virtual-altar-frontend.onrender.com/',
-      'https://virtual-altar-frontend.render.com',
-      'https://virtual-altar-frontend.render.com/',
-      'https://virtual-altar-frontend.onrender.com'
-    ];
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: [
+    'http://localhost:5000',
+    'http://localhost:3000', // Keep for backward compatibility
+    config.frontendUrl
+  ],
   credentials: true
 }));
 app.use(express.json({ limit: '50mb' }));
@@ -40,6 +26,16 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve uploaded images statically
 app.use('/uploads', express.static(path.join(__dirname, config.upload.path)));
+
+// Serve React build files
+app.use(express.static(path.join(__dirname, '../my_app/build'), {
+  setHeaders: (res, path) => {
+    // Disable caching for all files to prevent browser cache issues
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+}));
 
 // Test static file serving
 app.get('/test-uploads', (req, res) => {
@@ -80,12 +76,32 @@ app.get('/test-db', async (req, res) => {
     });
   }
 });
+
+// API Routes
 app.use('/api/auth', authRoutes.router);
 app.use('/api/wall', wallRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/premium', premiumRoutes);
 app.use('/api/features', featuresRoutes);
 
+// Serve React app for all other routes (SPA routing)
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  res.sendFile(path.join(__dirname, '../my_app/build/index.html'));
+});
+
 app.listen(config.port, () => {
-  console.log(`Server running on port ${config.port}`);
+  console.log(`🚀 Server running on port ${config.port}`);
+  console.log(`📱 Frontend: http://localhost:${config.port}/`);
+  console.log(`🔧 API: http://localhost:${config.port}/api`);
+  console.log(`📝 Test endpoints:`);
+  console.log(`   - Homepage: http://localhost:${config.port}/`);
+  console.log(`   - Login: http://localhost:${config.port}/login`);
+  console.log(`   - Signup: http://localhost:${config.port}/signup`);
+  console.log(`   - Wall: http://localhost:${config.port}/wall`);
+  console.log(`   - API Test: http://localhost:${config.port}/api`);
+  console.log(`\n✅ Virtual Altar is ready! Open http://localhost:${config.port}/ in your browser`);
 });

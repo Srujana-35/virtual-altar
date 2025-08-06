@@ -1,5 +1,16 @@
 {
-  "dependencies": {
-    "react-icons": "^5.5.0"
-  }
+  "name": "virtual-altar",
+  "version": "1.0.0",
+  "description": "Virtual Altar - Combined Frontend and Backend",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "build": "cd my_app && npm install && npm run build",
+    "build:start": "npm run build && npm start",
+    "dev": "cd backend && npm run dev",
+    "install:all": "npm install && cd backend && npm install && cd ../my_app && npm install"
+  },
+  "keywords": ["virtual-altar", "react", "nodejs", "express"],
+  "author": "",
+  "license": "ISC"
 }
