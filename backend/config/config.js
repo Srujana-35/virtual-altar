@@ -31,8 +31,8 @@ const config = {
     pass: process.env.EMAIL_PASS || 'your_email_password'
   },
   
-  // Frontend Configuration - Use environment variable or localhost for single deployment
-  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5000',
+  // Frontend Configuration - Use environment variable or detect current domain
+  frontendUrl: process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? 'https://virtual-altar-app.onrender.com' : 'http://localhost:5000'),
   
   // File Upload Configuration
   upload: {
