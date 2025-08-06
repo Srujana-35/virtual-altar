@@ -1,6 +1,35 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+
+// Check for problematic environment variables BEFORE loading any modules
+console.log('=== Checking Environment Variables ===');
+const envVars = process.env;
+let clearedVars = [];
+
+for (const [key, value] of Object.entries(envVars)) {
+  if (value && (
+    value.includes('http://') || 
+    value.includes('https://') || 
+    value.includes('git.new') ||
+    value.includes('://') ||
+    value.includes('pathToRegexpError')
+  )) {
+    console.log(`⚠️  WARNING: Environment variable ${key} contains URL: ${value}`);
+    // Clear problematic environment variables
+    delete process.env[key];
+    clearedVars.push(key);
+    console.log(`🗑️  Cleared environment variable: ${key}`);
+  }
+}
+
+if (clearedVars.length > 0) {
+  console.log(`✅ Cleared ${clearedVars.length} problematic environment variables:`, clearedVars);
+} else {
+  console.log('✅ No problematic environment variables found');
+}
+
+// Now load other modules
 const db = require('./models/db');
 const authRoutes = require('./routes/auth');
 const wallRoutes = require('./routes/wall');
