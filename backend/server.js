@@ -52,16 +52,6 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // Serve uploaded images statically
 app.use('/uploads', express.static(path.join(__dirname, config.upload.path)));
 
-// Serve React build files
-app.use(express.static(path.join(__dirname, '../my_app/build'), {
-  setHeaders: (res, path) => {
-    // Disable caching for all files to prevent browser cache issues
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-  }
-}));
-
 // Test static file serving
 app.get('/test-uploads', (req, res) => {
   const fs = require('fs');
@@ -143,13 +133,9 @@ for (const route of routes) {
 
 console.log(`✅ Successfully mounted ${mountedCount}/${routes.length} routes`);
 
-// Serve React app for all other routes (SPA routing)
+// Simple catch-all route for API only
 app.get('*', (req, res) => {
-  // Skip API routes
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
-  res.sendFile(path.join(__dirname, '../my_app/build/index.html'));
+  res.status(404).json({ error: 'API endpoint not found' });
 });
 
 // Error handling middleware
@@ -159,14 +145,10 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(config.port, () => {
-  console.log(`🚀 Server running on port ${config.port}`);
-  console.log(`📱 Frontend: http://localhost:${config.port}/`);
+  console.log(`🚀 Backend API running on port ${config.port}`);
   console.log(`🔧 API: http://localhost:${config.port}/api`);
   console.log(`📝 Test endpoints:`);
-  console.log(`   - Homepage: http://localhost:${config.port}/`);
-  console.log(`   - Login: http://localhost:${config.port}/login`);
-  console.log(`   - Signup: http://localhost:${config.port}/signup`);
-  console.log(`   - Wall: http://localhost:${config.port}/wall`);
   console.log(`   - API Test: http://localhost:${config.port}/api`);
-  console.log(`\n✅ Virtual Altar is ready! Open http://localhost:${config.port}/ in your browser`);
+  console.log(`   - Database Test: http://localhost:${config.port}/test-db`);
+  console.log(`\n✅ Backend is ready! API only mode.`);
 });
