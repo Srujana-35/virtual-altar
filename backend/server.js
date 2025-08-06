@@ -7,13 +7,17 @@ console.log('=== Checking Environment Variables ===');
 const envVars = process.env;
 let clearedVars = [];
 
+// More comprehensive check for problematic variables
 for (const [key, value] of Object.entries(envVars)) {
   if (value && (
     value.includes('http://') || 
     value.includes('https://') || 
     value.includes('git.new') ||
     value.includes('://') ||
-    value.includes('pathToRegexpError')
+    value.includes('pathToRegexpError') ||
+    value.includes('DEBUG_URL') ||
+    key === 'DEBUG_URL' ||
+    key.includes('DEBUG')
   )) {
     console.log(`⚠️  WARNING: Environment variable ${key} contains URL: ${value}`);
     // Clear problematic environment variables
@@ -23,10 +27,26 @@ for (const [key, value] of Object.entries(envVars)) {
   }
 }
 
+// Specifically check for DEBUG_URL
+if (process.env.DEBUG_URL) {
+  console.log(`⚠️  Found DEBUG_URL: ${process.env.DEBUG_URL}`);
+  delete process.env.DEBUG_URL;
+  clearedVars.push('DEBUG_URL');
+  console.log(`🗑️  Cleared DEBUG_URL`);
+}
+
 if (clearedVars.length > 0) {
   console.log(`✅ Cleared ${clearedVars.length} problematic environment variables:`, clearedVars);
 } else {
   console.log('✅ No problematic environment variables found');
+}
+
+// Double-check: Log all remaining environment variables that might be problematic
+console.log('=== Final Environment Variable Check ===');
+for (const [key, value] of Object.entries(process.env)) {
+  if (value && (value.includes('http') || value.includes('git.new') || value.includes('://'))) {
+    console.log(`⚠️  STILL FOUND: ${key} = ${value}`);
+  }
 }
 
 // Now load other modules
