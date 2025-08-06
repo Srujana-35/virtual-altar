@@ -18,6 +18,14 @@ for (const [key, value] of Object.entries(envVars)) {
   }
 }
 
+// Clear DEBUG_URL again after any potential Render injection
+setInterval(() => {
+  if (process.env.DEBUG_URL) {
+    console.log('🔄 Clearing DEBUG_URL again...');
+    delete process.env.DEBUG_URL;
+  }
+}, 1000);
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
