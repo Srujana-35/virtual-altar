@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback, useMemo } from 'react';
 import config from '../config/config';
 
 // Create context for features
@@ -20,8 +20,8 @@ export const FeaturesProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch features for current user
-  const fetchFeatures = async () => {
+  // Fetch features for current user - memoized to prevent infinite loops
+  const fetchFeatures = useCallback(async () => {
     try {
       console.log('🔄 Fetching features...');
       setLoading(true);
@@ -64,36 +64,36 @@ export const FeaturesProvider = ({ children }) => {
       setLoading(false);
       console.log('🏁 Features fetch completed');
     }
-  };
+  }, []); // Empty dependency array since it doesn't depend on any state
 
-  // Check if user can use a specific feature
-  const canUseFeature = (featureName) => {
+  // Check if user can use a specific feature - memoized
+  const canUseFeature = useCallback((featureName) => {
     if (!features[featureName]) {
       return false;
     }
     return features[featureName].can_use;
-  };
+  }, [features]);
 
-  // Get feature info
-  const getFeatureInfo = (featureName) => {
+  // Get feature info - memoized
+  const getFeatureInfo = useCallback((featureName) => {
     return features[featureName] || null;
-  };
+  }, [features]);
 
-  // Refresh features (useful after admin changes)
-  const refreshFeatures = () => {
+  // Refresh features (useful after admin changes) - memoized
+  const refreshFeatures = useCallback(() => {
     fetchFeatures();
-  };
+  }, [fetchFeatures]);
 
-  // Check if user is premium
-  const isPremium = userInfo.isPremium || false;
+  // Check if user is premium - memoized
+  const isPremium = useMemo(() => userInfo.isPremium || false, [userInfo.isPremium]);
 
-  // Check if user is admin
-  const isAdmin = userInfo.role === 'admin';
+  // Check if user is admin - memoized
+  const isAdmin = useMemo(() => userInfo.role === 'admin', [userInfo.role]);
 
   // Initial fetch on mount
   useEffect(() => {
     fetchFeatures();
-  }, []);
+  }, [fetchFeatures]);
 
   // Refresh features when token changes or user logs in
   useEffect(() => {
@@ -112,7 +112,7 @@ export const FeaturesProvider = ({ children }) => {
     return () => {
       window.removeEventListener('userLoggedIn', handleUserLogin);
     };
-  }, []);
+  }, [fetchFeatures]);
 
   const value = {
     features,

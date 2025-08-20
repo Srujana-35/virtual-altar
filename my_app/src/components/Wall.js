@@ -33,15 +33,12 @@ function Wall() {
   const [currentWallId, setCurrentWallId] = useState(null);
   const { canUseFeature, isPremium, features, fetchFeatures } = useFeatures();
 
-  // Debug logging and feature refresh
+  // Debug logging - removed the problematic useEffect that was causing infinite loop
   useEffect(() => {
     console.log('Wall.js - Features loaded:', features);
     console.log('Wall.js - Can use premium backgrounds:', canUseFeature('premium_backgrounds'));
     console.log('Wall.js - Is premium:', isPremium);
-    
-    // Refresh features when component mounts to ensure latest status
-    fetchFeatures();
-  }, [features, canUseFeature, isPremium, fetchFeatures]);
+  }, [features, canUseFeature, isPremium]);
 
   // Listen for premium upgrade events
   useEffect(() => {
