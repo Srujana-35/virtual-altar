@@ -334,6 +334,18 @@ function Wall() {
     {id:"frame4", src:"/decorations/frame4.png", category:"frames"},
     {id:"frame5", src:"/decorations/frame5.png", category:"frames"},
     {id:"frame6", src:"/decorations/frame6.png", category:"frames"},
+    {id:"incense_stick1", src:"/decorations/incense_stick1.png", category:"incense"},
+    {id:"incense_stick2", src:"/decorations/incense_stick2.png", category:"incense"},
+    {id:"incense_stick3", src:"/decorations/incense_stick3.png", category:"incense"},
+    {id:"flowervase1", src:"/decorations/flowervase1.png", category:"flowervase"},
+    {id:"flowervase2", src:"/decorations/flowervase2.png", category:"flowervase"},
+    {id:"flowervase3", src:"/decorations/flowervase3.png", category:"flowervase"},
+    {id:"flowervase4", src:"/decorations/flowervase4.png", category:"flowervase"},
+    {id:"flowervase5", src:"/decorations/flowervase5.png", category:"flowervase"},
+    {id:"flowervase6", src:"/decorations/flowervase6.png", category:"flowervase"},
+    {id:"flower1", src:"/decorations/flower1.png", category:"flower"},
+    {id:"flower2", src:"/decorations/flower2.png", category:"flower"},
+    {id:"flower3", src:"/decorations/flower3.png", category:"flower"},
     // Add more as needed
   ];
 
@@ -345,6 +357,9 @@ function Wall() {
     { key: "garlands", label: "Garlands" },
     { key: "wallgarlands", label: "Wall Garlands" },
     { key: "frames", label: "Frames" },
+    {key:"incense", label:"Incense Sticks"},
+    {key:"flowervase", label:"Flower Vases"},
+    {key:"flower", label:"Flowers"},
   ];
 
   const [selectedPremiumCategory, setSelectedPremiumCategory] = useState("tables");
@@ -489,6 +504,14 @@ function Wall() {
       {/* Decoration Palette full width below header */}
       <div className="horizontal-palette-section horizontal-palette-fullwidth">
         <h4 className="section-title">Decoration Palette</h4>
+        <div style={{ 
+          fontSize: '14px', 
+          color: '#1a237e', 
+          marginBottom: '8px', 
+          fontStyle: 'italic' 
+        }}>
+          💡 Drag and drop decorations onto the wall area below
+        </div>
         <div className="horizontal-palette-scroll">
           {decorationPalette.map(dec => (
             <img
